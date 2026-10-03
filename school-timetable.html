@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>منصة جداول التوقيت المدرسية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#eef1f6;--sf:#fff;--s2:#f4f6fb;--ink:#14233b;--mute:#5d6b82;--line:#d9dfea;--brand:#1c3d7a;--bi:#fff;--soft:#e3eaf7;--hl:#f4b400;--ok:#17803d;--oks:#dff3e6;--bad:#c0262d;--bads:#fbe2e3;--wn:#8a5d00;--wns:#fff0c2;--side:#0f1b33;--cs:60%;--cl:90%;--ct:18%;--font:'Readex Pro',Tahoma,'Segoe UI',system-ui,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1424;--sf:#162036;--s2:#1b2744;--ink:#e8edf7;--mute:#9aa8c2;--line:#2b3856;--brand:#8fb0ff;--bi:#0b1220;--soft:#22305a;--oks:#12341f;--bads:#3b1a1d;--wn:#f0c25a;--wns:#3a2f10;--side:#0a1226;--cl:26%;--ct:90%}}
+:root[data-theme="dark"]{--bg:#0d1424;--sf:#162036;--s2:#1b2744;--ink:#e8edf7;--mute:#9aa8c2;--line:#2b3856;--brand:#8fb0ff;--bi:#0b1220;--soft:#22305a;--oks:#12341f;--bads:#3b1a1d;--wn:#f0c25a;--wns:#3a2f10;--side:#0a1226;--cl:26%;--ct:90%}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.7 var(--font)}
+button,input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:262px minmax(0,1fr);min-height:100vh}
+.side{background:var(--side);color:#dbe5f8;padding:18px 12px;position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow:auto}
+.side h1{font-size:16px;margin:4px 8px 14px;font-weight:700;line-height:1.5}.side h1 small{display:block;font-weight:300;color:#9fb2d6;font-size:12px}
+.side h4{margin:14px 10px 4px;font-size:12px;font-weight:500;color:#8ea3cc}
+.side a{display:block;padding:7px 12px;border-radius:8px;color:#dbe5f8;text-decoration:none;font-size:14px;cursor:pointer;border-inline-start:3px solid transparent}
+.side a:hover{background:rgba(255,255,255,.07)}.side a.on{background:rgba(255,255,255,.1);border-inline-start-color:var(--hl);font-weight:600}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.top h2{margin:0;font-size:18px;flex:1}.burger{display:none}
+main{padding:16px;max-width:1200px;width:100%}
+.card{background:var(--sf);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}.card h3{margin:0 0 10px;font-size:16px}
+.btn{border:1px solid var(--line);background:var(--sf);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:14px}.btn:hover{background:var(--s2)}
+.btn.p{background:var(--brand);color:var(--bi);border-color:var(--brand);font-weight:600}.btn.d{color:var(--bad);border-color:var(--bad)}.btn.sm{padding:3px 9px;font-size:13px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.in{border:1px solid var(--line);background:var(--sf);border-radius:7px;padding:5px 8px;min-width:70px;max-width:100%}
+.in:focus,.btn:focus-visible,.side a:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
+.tw{overflow-x:auto;max-width:100%}table{border-collapse:collapse;width:100%}
+.t th,.t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle;font-size:14px}.t th{background:var(--s2);font-weight:600;white-space:nowrap}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.f span{display:block;font-size:13px;color:var(--mute)}.f .in{width:100%}
+.note{padding:8px 12px;border-radius:8px;background:var(--soft);margin:8px 0;font-size:14px}.note.bad{background:var(--bads);color:var(--bad)}.note.ok{background:var(--oks);color:var(--ok)}.note.wn{background:var(--wns);color:var(--wn)}
+.badge{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--soft)}.badge.ok{background:var(--oks);color:var(--ok)}.badge.bad{background:var(--bads);color:var(--bad)}.badge.wn{background:var(--wns);color:var(--wn)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.stat{background:var(--s2);border-radius:8px;padding:10px 12px}.stat b{font-size:22px;display:block}.stat span{font-size:12px;color:var(--mute)}
+.tt{min-width:560px}.tt th,.tt td{border:1px solid var(--line);padding:3px;text-align:center;vertical-align:top;font-size:12px}.tt th{background:var(--s2);padding:5px}.tt th.tc span{display:block;font-weight:300;color:var(--mute)}
+.tt td.slot{height:62px;min-width:92px}.tt td.off{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--s2) 5px 10px)}
+.tt td.tue{background-image:repeating-linear-gradient(135deg,rgba(244,180,0,.25) 0 6px,transparent 6px 12px)}
+.tt tr.brk td{background:var(--s2);color:var(--mute);height:18px;font-size:11px;padding:0}
+.ls{--h:210;background:hsl(var(--h) var(--cs) var(--cl));color:hsl(var(--h) 40% var(--ct));border-radius:6px;padding:3px 4px;line-height:1.35;cursor:default;height:100%}
+.ls b{display:block;font-size:12.5px}.ls span,.ls em{display:block;font-size:11px;font-style:normal;opacity:.85}.ls.spec{outline:1.5px dashed hsl(var(--h) 50% 45%)}
+.ls .mv{font-size:10px;font-style:normal;background:var(--hl);color:#222;border-radius:4px;padding:0 4px}
+.edit .slot{cursor:pointer}.slot.sel .ls{outline:3px solid var(--brand)}.slot.hok{box-shadow:inset 0 0 0 2px var(--ok)}.slot.hno{opacity:.5}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid var(--line);border-radius:99px;padding:2px 11px;font-size:13px;background:var(--sf);cursor:pointer}.chip.on{background:var(--brand);color:var(--bi);border-color:var(--brand)}
+.av{width:100%;min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--sf);cursor:pointer;font-size:12px}.av.u{background:var(--bads);color:var(--bad)}.av.p{background:var(--oks);color:var(--ok)}
+.bar{height:10px;background:var(--s2);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--brand);width:0}
+.cand{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--s2)}.cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.hero{background:var(--side);color:#e8efff;border-radius:12px;padding:18px;margin-bottom:14px}.hero h2{margin:0 0 6px;font-size:21px}.hero p{margin:0 0 10px;color:#b8c8e8}
+.hm td{width:52px;height:34px;text-align:center;font-size:12px;border:1px solid var(--line)}.hm th{font-size:12px;padding:3px;color:var(--mute)}
+details{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0}summary{cursor:pointer}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:.2s;z-index:90}#toast.on{opacity:1}
+#modal .mb{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:80;padding:16px}#modal .md{background:var(--sf);border-radius:12px;padding:18px;max-width:420px;width:100%}
+.bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30}
+#printArea{position:fixed;left:-20000px;top:0;width:1100px;background:#fff;color:#000}
+.psheet{padding:16px;background:#fff;color:#000;page-break-after:always}.psheet h2{margin:0}.psheet p{margin:2px 0 8px}
+@media (max-width:900px){.app{grid-template-columns:1fr}.burger{display:inline-block}.side{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(86vw,300px);max-height:none;z-index:40;transform:translateX(100%);transition:transform .22s;padding-top:calc(18px + env(safe-area-inset-top,0px))}.side.open{transform:none}.bd.on{display:block}}
+@media print{#app,#toast,#modal{display:none!important}#printArea{position:static;width:auto}.ls{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+<nav id="side" class="side"></nav>
+<div><div class="top"><button class="btn burger" data-act="drawer" aria-label="القائمة">☰</button><h2 id="title"></h2><span id="stat"></span></div><main id="main"></main></div>
+</div>
+<div id="bd" class="bd" data-act="drawer"></div><div id="modal"></div><div id="toast"></div><div id="printArea"></div>
+<script>
+'use strict';
+const DAYS=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const LS='tt-platform-v1';
+let S=null;
+const UI={page:'dash',cls:'',tch:'',room:'',sel:null,hints:null,msg:null,drawer:false,pst:'',tab:0,cand:[],gen:null,opt:{n:4,ms:2500},exp:{scope:'one',id:''},modal:null};
+let DL=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+Math.random().toString(36).slice(2,8);
+const by=(a,id)=>a.find(x=>x.id===id);
+const nm=(a,id,d='—')=>{const x=by(a,id);return x?x.name:d};
+const tick=()=>new Promise(r=>setTimeout(r,0));
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h}
+
+/* ---------- state ---------- */
+function blank(){
+ const per=[['p1','08:00','09:00','m',false],['p2','09:00','10:00','m',true],['p3','10:15','11:15','m',false],['p4','11:15','12:15','m',false],['p5','13:30','14:30','e',false],['p6','14:30','15:30','e',false],['p7','15:30','16:30','e',false]].map(([id,start,end,session,breakAfter])=>({id,start,end,session,breakAfter}));
+ const dp={};[0,1,2,3,4].forEach(d=>dp[d]=['p1','p2','p3','p4'].concat(d<=2?['p5','p6','p7']:[]));
+ return {inst:{name:'',city:'',dir:'',head:'',year:'2026/2027',days:[0,1,2,3,4],periods:per,dayPeriods:dp},
+  years:[{id:'y1',name:'2026/2027'}],activeYear:'y1',levels:[],streams:[],subjects:[],programs:[],classes:[],teachers:[],rooms:[],
+  roomTypes:['عادية','مخبر فيزياء','مخبر علوم','إعلام آلي','رياضة'],rules:[],
+  prefs:{coreSpread:6,heavy:5,gapC:8,gapT:5,longRun:5,hours:5,awk:5,balance:5},tue:{on:true,day:2,ses:'e'},capacity:false,timetable:null};
+}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function load(){try{const j=localStorage.getItem(LS);if(j)return Object.assign(blank(),JSON.parse(j))}catch(e){}return blank()}
+const P=()=>S.inst.periods;
+const pIdx=id=>P().findIndex(p=>p.id===id);
+const enabled=(d,pid)=>S.inst.days.includes(d)&&(S.inst.dayPeriods[d]||[]).includes(pid)&&pIdx(pid)>=0;
+const link=i=>i>=0&&i+1<P().length&&P()[i].session===P()[i+1].session&&!P()[i].breakAfter;
+const sortedDays=()=>S.inst.days.slice().sort((a,b)=>a-b);
+function activeClasses(){return S.classes.filter(c=>{const st=by(S.streams,c.streamId),lv=st&&by(S.levels,st.levelId);return lv&&lv.yearId===S.activeYear})}
+const progsOf=c=>S.programs.filter(p=>p.streamId===c.streamId&&p.hours>0&&by(S.subjects,p.subjectId));
+const progOf=(c,sid)=>S.programs.find(p=>p.streamId===c.streamId&&p.subjectId===sid);
+const needRT=pr=>pr&&pr.roomType&&pr.roomType!=='عادية'?pr.roomType:'';
+const teacherFor=(cid,sid)=>S.teachers.find(t=>t.subjectId===sid&&t.classIds.includes(cid));
+function totalSlots(){let n=0;S.inst.days.forEach(d=>n+=(S.inst.dayPeriods[d]||[]).filter(p=>pIdx(p)>=0).length);return n}
+function teacherLoad(t){return t.classIds.reduce((a,cid)=>{const c=by(S.classes,cid);const pr=c&&progOf(c,t.subjectId);return a+(pr?pr.hours:0)},0)}
+function partition(pr){const h=pr.hours|0;if(pr.splittable===false)return[h];const bs=Math.max(1,Math.min(h,(pr.blockSize|0)||1)),a=[];let r=h;while(r>0){const x=Math.min(bs,r);a.push(x);r-=x}return a}
+function cfgSig(){return hash(JSON.stringify([S.inst,S.levels,S.streams,S.programs,S.classes,S.teachers,S.rooms,S.rules,S.subjects,S.activeYear,S.capacity]))}
+function autoAssign(cap=18){let made=0;S.subjects.forEach(sub=>{const need=[];activeClasses().forEach(c=>{const pr=progOf(c,sub.id);if(pr&&pr.hours>0&&!teacherFor(c.id,sub.id))need.push({c,h:pr.hours})});need.sort((a,b)=>b.h-a.h);const ts=S.teachers.filter(t=>t.subjectId===sub.id);need.forEach(n=>{let t=ts.find(t=>teacherLoad(t)+n.h<=cap);if(!t){t={id:uid('t'),name:'أستاذ '+sub.name+' '+(ts.length+1),subjectId:sub.id,classIds:[],unavail:[],pref:[],maxConsec:3};S.teachers.push(t);ts.push(t);made++}t.classIds.push(n.c.id)})});return made}
+
+function loadDemo(){
+ const D=blank();S=D;const y='y1';D.inst.name='ثانوية الأمل (بيانات تجريبية)';
+ D.levels=[{id:'lv3',name:'3 ثانوي',yearId:y}];
+ const st={};[['m','رياضيات'],['s','علوم'],['a','آداب'],['l','لغات']].forEach(([k,n])=>{st[k]={id:'st'+k,levelId:'lv3',name:n,maxDay:0,minDay:0};D.streams.push(st[k])});
+ [['mat','رياضيات','علمية'],['phy','فيزياء','علمية'],['nat','علوم طبيعية','علمية'],['tpp','أعمال تطبيقية (فيزياء)','علمية'],['tpn','أعمال تطبيقية (علوم)','علمية'],['ara','لغة عربية','أدبية'],['fra','لغة فرنسية','لغات'],['eng','لغة إنجليزية','لغات'],['esp','لغة إسبانية','لغات'],['phi','فلسفة','أدبية'],['his','تاريخ وجغرافيا','أدبية'],['isl','علوم إسلامية','شرعية'],['inf','إعلام آلي','تقنية'],['pe','تربية بدنية','رياضة']].forEach(([k,n,t])=>D.subjects.push({id:'sb_'+k,name:n,type:t}));
+ const pg=(k,s,h,fl='',rt='عادية',sp=true)=>D.programs.push({id:uid('p'),streamId:st[k].id,subjectId:'sb_'+s,hours:h,coef:fl.includes('c')?4:1,core:fl.includes('c'),heavy:fl.includes('h'),roomType:rt,splittable:sp,blockSize:1,minDay:0,maxDay:2});
+ pg('m','mat',5,'ch');pg('m','phy',3,'ch');pg('m','tpp',2,'h','مخبر فيزياء',false);pg('m','nat',2);pg('m','ara',2);pg('m','fra',2);pg('m','eng',2);pg('m','phi',2);pg('m','inf',1,'','إعلام آلي');pg('m','pe',1,'','رياضة');
+ pg('s','nat',4,'ch');pg('s','tpn',2,'h','مخبر علوم',false);pg('s','phy',3,'c');pg('s','mat',4,'ch');pg('s','ara',3);pg('s','fra',2);pg('s','eng',2);pg('s','phi',2);pg('s','inf',1,'','إعلام آلي');pg('s','pe',1,'','رياضة');
+ pg('a','phi',5,'c');pg('a','ara',5,'c');pg('a','his',4);pg('a','fra',3);pg('a','eng',2);pg('a','mat',2);pg('a','isl',2);pg('a','pe',1,'','رياضة');
+ pg('l','eng',4,'c');pg('l','fra',4,'c');pg('l','esp',3,'c');pg('l','ara',3);pg('l','phi',2);pg('l','his',3);pg('l','mat',2);pg('l','pe',1,'','رياضة');
+ [['m1','3 رياضيات 1','m'],['m2','3 رياضيات 2','m'],['s1','3 علوم 1','s'],['s2','3 علوم 2','s'],['a1','3 آداب 1','a'],['l1','3 لغات 1','l']].forEach(([k,n,s],i)=>{D.rooms.push({id:'rg'+k,name:'القاعة '+(11+i),type:'عادية',capacity:35,subjectIds:[]});D.classes.push({id:'c'+k,streamId:st[s].id,name:n,size:30,roomId:'rg'+k})});
+ [['rp','مخبر الفيزياء','مخبر فيزياء',24],['rn','مخبر العلوم','مخبر علوم',24],['ri','قاعة الإعلام الآلي','إعلام آلي',30],['rs','قاعة الرياضة','رياضة',60]].forEach(([id,n,t,c])=>D.rooms.push({id,name:n,type:t,capacity:c,subjectIds:[]}));
+ autoAssign(18);
+ const N=['أحمد','سمير','ليلى','كريم','نادية','يوسف','أمينة','رشيد','سعاد','عمر','فاطمة','إلياس','حنان','مراد','سلمى','وليد','هدى','بلال','ريما','طارق','منى','ياسين','نوال','حمزة','سارة'];
+ D.teachers.forEach((t,i)=>t.name='أ. '+N[i%N.length]);if(D.teachers[0])D.teachers[0].unavail=['1-p1'];
+ save();
+}
+
+/* ---------- compile & solver ---------- */
+function compile(){
+ const per=P(),NP=per.length,ND=7,en=new Uint8Array(ND*NP);
+ S.inst.days.forEach(d=>(S.inst.dayPeriods[d]||[]).forEach(pid=>{const i=pIdx(pid);if(i>=0)en[d*NP+i]=1}));
+ const lk=per.map((_,i)=>link(i)?1:0),ses=per.map(p=>p.session==='e'?1:0);
+ let lastE=-1;ses.forEach((s,i)=>{if(s===1)lastE=i});
+ const classes=activeClasses(),cI={};classes.forEach((c,i)=>cI[c.id]=i);
+ const teachers=S.teachers,tI={};teachers.forEach((t,i)=>tI[t.id]=i);
+ const rooms=S.rooms,rI={};rooms.forEach((r,i)=>rI[r.id]=i);
+ const sI={};S.subjects.forEach((s,i)=>sI[s.id]=i);
+ const actDays=sortedDays(),NT=teachers.length;
+ const tUn=new Uint8Array(NT*ND*NP),tPref=new Uint8Array(NT*ND*NP),tHas=[],tMax=[],tLoad=[],tCap=[];
+ teachers.forEach((t,ti)=>{(t.unavail||[]).forEach(k=>{const[d,pid]=k.split('-'),pi=pIdx(pid);if(pi>=0)tUn[(ti*ND+(+d))*NP+pi]=1});const pf=t.pref||[];tHas.push(pf.length>0);pf.forEach(k=>{const[d,pid]=k.split('-'),pi=pIdx(pid);if(pi>=0)tPref[(ti*ND+(+d))*NP+pi]=1});tMax.push(t.maxConsec||0);tLoad.push(0);let c=0;actDays.forEach(d=>{for(let p=0;p<NP;p++)if(en[d*NP+p]&&!tUn[(ti*ND+d)*NP+p])c++});tCap.push(c)});
+ const dayCap=new Array(ND).fill(0);actDays.forEach(d=>{for(let p=0;p<NP;p++)if(en[d*NP+p])dayCap[d]++});const capSum=dayCap.reduce((a,b)=>a+b,0)||1;
+ const blocks=[],classSubs=classes.map(()=>[]),classTot=classes.map(()=>0),cMax=classes.map(c=>(by(S.streams,c.streamId)||{}).maxDay||0);
+ const nd=actDays.length||1;
+ classes.forEach((c,ci)=>progsOf(c).forEach(pr=>{
+  const t=teacherFor(c.id,pr.subjectId),ti=t?tI[t.id]:-1,si=sI[pr.subjectId];if(si===undefined)return;
+  const q=Math.floor(pr.hours/nd),r=pr.hours%nd;classSubs[ci].push({s:si,core:!!pr.core,minSq:r*(q+1)*(q+1)+(nd-r)*q*q});classTot[ci]+=pr.hours;
+  partition(pr).forEach(len=>{blocks.push({id:blocks.length,c:ci,s:si,t:ti,len,pr,rt:needRT(pr),core:!!pr.core,heavy:!!pr.heavy,bsz:pr.splittable===false?pr.hours:Math.max(1,pr.blockSize||1),maxDay:pr.maxDay||0,cid:c.id,sid:pr.subjectId,tid:t?t.id:'',ban:new Uint8Array(ND*NP),soft:new Float32Array(ND*NP),rooms:[]});if(ti>=0)tLoad[ti]+=len})}));
+ blocks.forEach(b=>{
+  S.rules.forEach(r=>{if(r.subjectId&&r.subjectId!==b.sid)return;if(r.classId&&r.classId!==b.cid)return;if(r.teacherId&&r.teacherId!==b.tid)return;
+   for(let d=0;d<ND;d++)for(let p=0;p<NP;p++){if(r.day>=0&&r.day!==d)continue;if(r.period&&r.period!==per[p].id)continue;if(r.hard)b.ban[d*NP+p]=1;else b.soft[d*NP+p]+=25}});
+  if(b.rt)rooms.forEach((r,ri)=>{if(r.type!==b.rt)return;if(r.subjectIds&&r.subjectIds.length&&!r.subjectIds.includes(b.sid))return;if(S.capacity&&r.capacity&&classes[b.c].size>r.capacity)return;b.rooms.push(ri)})});
+ const k=v=>v/5,pf=S.prefs;
+ const W={coreSpread:16*k(pf.coreSpread),spread:7*k(pf.hours),heavy:11*k(pf.heavy),gapC:14*k(pf.gapC),gapT:7*k(pf.gapT),tday:3*k(pf.gapT),longRun:9*k(pf.longRun),single:6*k(pf.awk),split:4*k(pf.awk),awk:5*k(pf.awk),bal:3*k(pf.balance),pref:4,tue:S.tue.on?400:0};
+ return{NP,ND,en,lk,ses,lastE,classes,teachers,rooms,blocks,classSubs,classTot,cMax,tUn,tPref,tHas,tMax,tLoad,tCap,home:classes.map(c=>rI[c.roomId]===undefined?-1:rI[c.roomId]),actDays,dayCap,capSum,W,tueOn:S.tue.on&&S.inst.days.includes(S.tue.day),tue:{day:S.tue.day,ses:S.tue.ses==='e'?1:0},NS:S.subjects.length};
+}
+class Solver{
+ constructor(pb,seed){this.pb=pb;this.B=pb.blocks;const{NP,ND}=pb,NC=pb.classes.length,NT=pb.teachers.length,NR=pb.rooms.length,n=this.B.length;this.NS=pb.NS;
+  this.cg=new Int16Array(NC*ND*NP).fill(-1);this.tg=new Int16Array(NT*ND*NP).fill(-1);this.rg=new Int16Array(NR*ND*NP).fill(-1);
+  this.csd=new Uint8Array(NC*this.NS*ND);this.cdl=new Uint8Array(NC*ND);this.bd=new Int8Array(n).fill(-1);this.bp=new Int8Array(n).fill(-1);this.br=new Int16Array(n).fill(-1);this.tabu=new Int32Array(n);this.rnd=mulberry(seed)}
+ snap(){return{cg:this.cg.slice(),tg:this.tg.slice(),rg:this.rg.slice(),csd:this.csd.slice(),cdl:this.cdl.slice(),bd:this.bd.slice(),bp:this.bp.slice(),br:this.br.slice()}}
+ restore(s){for(const k in s)this[k].set(s[k])}
+ check(b,d,p){const pb=this.pb,B=this.B[b],{NP,ND}=pb,L=B.len;if(p+L>NP)return-1;const cb=(B.c*ND+d)*NP,tb=B.t>=0?(B.t*ND+d)*NP:-1;
+  for(let k=0;k<L;k++){const q=p+k;if(!pb.en[d*NP+q])return-1;if(k<L-1&&!pb.lk[q])return-1;if(B.ban[d*NP+q])return-5;if(this.cg[cb+q]>=0)return-2;if(tb>=0&&(this.tg[tb+q]>=0||pb.tUn[tb+q]))return-3}
+  if(B.maxDay>0&&this.csd[(B.c*this.NS+B.s)*ND+d]+L>B.maxDay)return-6;
+  const cm=pb.cMax[B.c];if(cm>0&&this.cdl[B.c*ND+d]+L>cm)return-6;
+  if(tb>=0&&pb.tMax[B.t]>0){let run=L;for(let q=p-1;q>=0&&pb.lk[q]&&this.tg[tb+q]>=0;q--)run++;for(let q=p+L;q<NP&&pb.lk[q-1]&&this.tg[tb+q]>=0;q++)run++;if(run>pb.tMax[B.t])return-6}
+  return this.room(b,d,p)}
+ room(b,d,p){const pb=this.pb,B=this.B[b],{NP,ND}=pb;
+  if(!B.rt){const r=pb.home[B.c];if(r<0)return-4;const rb=(r*ND+d)*NP;for(let k=0;k<B.len;k++)if(this.rg[rb+p+k]>=0)return-4;return r}
+  const l=B.rooms,n=l.length;for(let j=0;j<n;j++){const r=l[(j+b+d+p)%n],rb=(r*ND+d)*NP;let ok=true;for(let k=0;k<B.len;k++)if(this.rg[rb+p+k]>=0){ok=false;break}if(ok)return r}return-4}
+ place(b,d,p,r){const pb=this.pb,B=this.B[b],{NP,ND}=pb;for(let k=0;k<B.len;k++){const q=p+k;this.cg[(B.c*ND+d)*NP+q]=b;if(B.t>=0)this.tg[(B.t*ND+d)*NP+q]=b;this.rg[(r*ND+d)*NP+q]=b}
+  this.csd[(B.c*this.NS+B.s)*ND+d]+=B.len;this.cdl[B.c*ND+d]+=B.len;this.bd[b]=d;this.bp[b]=p;this.br[b]=r}
+ unplace(b){const pb=this.pb,B=this.B[b],{NP,ND}=pb,d=this.bd[b],p=this.bp[b],r=this.br[b];if(d<0)return;for(let k=0;k<B.len;k++){const q=p+k;this.cg[(B.c*ND+d)*NP+q]=-1;if(B.t>=0)this.tg[(B.t*ND+d)*NP+q]=-1;this.rg[(r*ND+d)*NP+q]=-1}
+  this.csd[(B.c*this.NS+B.s)*ND+d]-=B.len;this.cdl[B.c*ND+d]-=B.len;this.bd[b]=-1;this.bp[b]=-1;this.br[b]=-1}
+ bcost(b){const pb=this.pb,B=this.B[b],{NP}=pb,d=this.bd[b],p=this.bp[b];let c=0;for(let k=0;k<B.len;k++){const q=p+k;if(pb.tueOn&&d===pb.tue.day&&pb.ses[q]===pb.tue.ses)c+=pb.W.tue;c+=B.soft[d*NP+q];if(B.t>=0&&pb.tHas[B.t]&&!pb.tPref[(B.t*pb.ND+d)*NP+q])c+=pb.W.pref}return c}
+ cc(c){const pb=this.pb,{NP,ND,W,en,ses}=pb,NS=this.NS;let cost=0,sumL=0;const loads=[];
+  for(let di=0;di<pb.actDays.length;di++){const d=pb.actDays[di],base=(c*ND+d)*NP;let load=0,heavy=0,hr=0,mhr=0,run=0,lastS=-1,cm=0,ce=0,fm=-1,lm=-1,fe=-1,le=-1;
+   for(let p=0;p<NP;p++){if(!en[d*NP+p])continue;const b=this.cg[base+p];if(b<0){hr=0;run=0;lastS=-1;continue}const B=this.B[b];load++;
+    if(ses[p]===0){cm++;if(fm<0)fm=p;lm=p}else{ce++;if(fe<0)fe=p;le=p;if(p===pb.lastE)cost+=W.awk}
+    if(B.heavy){heavy++;hr++;if(hr>mhr)mhr=hr}else hr=0;if(B.s===lastS)run++;else{run=1;lastS=B.s}if(run>B.bsz)cost+=W.longRun}
+   if(cm>0){let e=0;for(let p=fm;p<=lm;p++)if(en[d*NP+p]&&ses[p]===0)e++;cost+=W.gapC*(e-cm);if(cm===1)cost+=W.single}
+   if(ce>0){let e=0;for(let p=fe;p<=le;p++)if(en[d*NP+p]&&ses[p]===1)e++;cost+=W.gapC*(e-ce);if(ce===1)cost+=W.single}
+   if(cm>0&&ce>0)cost+=W.split;if(cm===0&&ce>0)cost+=W.awk*2;if(heavy>2)cost+=W.heavy*(heavy-2)*(heavy-2);if(mhr>2)cost+=W.heavy*(mhr-2);
+   loads.push([d,load]);sumL+=load}
+  for(const[d,l]of loads){const t=pb.classTot[c]*pb.dayCap[d]/pb.capSum;cost+=W.bal*(l-t)*(l-t)}
+  for(const cs of pb.classSubs[c]){let sq=0;for(const d of pb.actDays){const v=this.csd[(c*NS+cs.s)*ND+d];sq+=v*v}cost+=(cs.core?W.coreSpread:W.spread)*Math.max(0,sq-cs.minSq)}
+  return cost}
+ tc(t){const pb=this.pb,{NP,ND,W,en,ses}=pb;let cost=0;for(const d of pb.actDays){const base=(t*ND+d)*NP;let cm=0,ce=0,fm=-1,lm=-1,fe=-1,le=-1;
+  for(let p=0;p<NP;p++){if(!en[d*NP+p]||this.tg[base+p]<0)continue;if(ses[p]===0){cm++;if(fm<0)fm=p;lm=p}else{ce++;if(fe<0)fe=p;le=p}}
+  if(cm>0){let e=0;for(let p=fm;p<=lm;p++)if(en[d*NP+p]&&ses[p]===0)e++;cost+=W.gapT*(e-cm)}
+  if(ce>0){let e=0;for(let p=fe;p<=le;p++)if(en[d*NP+p]&&ses[p]===1)e++;cost+=W.gapT*(e-ce)}
+  if(cm+ce>0)cost+=W.tday}return cost}
+ part(l){let s=0;const B=this.B;for(let i=0;i<l.length;i++){const b=l[i],c=B[b].c;let dup=false;for(let j=0;j<i;j++)if(B[l[j]].c===c)dup=true;if(!dup)s+=this.cc(c);const t=B[b].t;if(t>=0){dup=false;for(let j=0;j<i;j++)if(B[l[j]].t===t)dup=true;if(!dup)s+=this.tc(t)}if(this.bd[b]>=0)s+=this.bcost(b)}return s}
+ total(){let s=0;for(let c=0;c<this.pb.classes.length;c++)s+=this.cc(c);for(let t=0;t<this.pb.teachers.length;t++)s+=this.tc(t);for(let b=0;b<this.B.length;b++)if(this.bd[b]>=0)s+=this.bcost(b);return s}
+ putBest(b){const pb=this.pb,B=this.B[b],before=this.part([b]);let found=false,best=0,bd=0,bp=0,br=0;
+  for(const d of pb.actDays)for(let p=0;p+B.len<=pb.NP;p++){const r=this.check(b,d,p);if(r<0)continue;this.place(b,d,p,r);const v=this.part([b])-before+this.rnd()*3;this.unplace(b);if(!found||v<best){found=true;best=v;bd=d;bp=p;br=r}}
+  if(found)this.place(b,bd,bp,br);return found}
+ eject(b,iter,queue){const pb=this.pb,B=this.B[b],{NP,ND}=pb,cands=[];
+  for(const d of pb.actDays)for(let p=0;p+B.len<=NP;p++){let ok=true;const bl=[];
+   for(let k=0;k<B.len;k++){const q=p+k;if(!pb.en[d*NP+q]||(k<B.len-1&&!pb.lk[q])||B.ban[d*NP+q]||(B.t>=0&&pb.tUn[(B.t*ND+d)*NP+q])){ok=false;break}
+    const x=this.cg[(B.c*ND+d)*NP+q];if(x>=0&&bl.indexOf(x)<0)bl.push(x);
+    if(B.t>=0){const y=this.tg[(B.t*ND+d)*NP+q];if(y>=0&&bl.indexOf(y)<0)bl.push(y)}
+    if(!B.rt){const r=pb.home[B.c];if(r<0){ok=false;break}const z=this.rg[(r*ND+d)*NP+q];if(z>=0&&bl.indexOf(z)<0)bl.push(z)}
+    else{if(!B.rooms.length){ok=false;break}let free=false,ab=-1;for(const r of B.rooms){const z=this.rg[(r*ND+d)*NP+q];if(z<0){free=true;break}ab=z}if(!free&&ab>=0&&bl.indexOf(ab)<0)bl.push(ab)}}
+   if(!ok||bl.length>3||bl.length===0)continue;if(bl.some(x=>this.tabu[x]>iter))continue;cands.push({d,p,bl,s:bl.length+this.rnd()*.5})}
+  cands.sort((a,b)=>a.s-b.s);
+  for(const c of cands.slice(0,6)){const old=c.bl.map(x=>[x,this.bd[x],this.bp[x],this.br[x]]);c.bl.forEach(x=>this.unplace(x));const r=this.check(b,c.d,c.p);
+   if(r>=0){this.place(b,c.d,c.p,r);this.tabu[b]=iter+10+((this.rnd()*20)|0);c.bl.forEach(x=>queue.push(x));return true}
+   old.forEach(([x,d,p,rr])=>this.place(x,d,p,rr))}
+  return false}
+ construct(maxIter){const n=this.B.length,pb=this.pb;
+  const key=this.B.map(b=>{const tl=b.t>=0?pb.tLoad[b.t]/Math.max(1,pb.tCap[b.t]):0;return(b.len*3+(b.rt?5:0)+tl*10+(b.core?1:0)+(b.pr.splittable===false?3:0))*(1+.25*this.rnd())});
+  const q=[...Array(n).keys()].sort((a,b)=>key[b]-key[a]);let h=0,it=0;
+  while(h<q.length&&it<maxIter){const b=q[h++];it++;if(this.bd[b]>=0)continue;if(this.putBest(b))continue;if(!this.eject(b,it,q))q.push(b)}
+  return q.slice(h).filter((b,i,a)=>this.bd[b]<0&&a.indexOf(b)===i)}
+ improve(iters,T){const n=this.B.length,pb=this.pb;
+  for(let it=0;it<iters;it++){const b=(this.rnd()*n)|0;if(this.bd[b]<0)continue;const B=this.B[b];
+   if(this.rnd()<.6){const d=pb.actDays[(this.rnd()*pb.actDays.length)|0],p=(this.rnd()*pb.NP)|0;if(d===this.bd[b]&&p===this.bp[b])continue;
+    const od=this.bd[b],op=this.bp[b],or=this.br[b],L=[b],before=this.part(L);this.unplace(b);const r=this.check(b,d,p);if(r<0){this.place(b,od,op,or);continue}
+    this.place(b,d,p,r);const dl=this.part(L)-before;if(!(dl<=0||(T>0&&this.rnd()<Math.exp(-dl/T)))){this.unplace(b);this.place(b,od,op,or)}}
+   else{const b2=(this.rnd()*n)|0;if(b2===b||this.bd[b2]<0||this.B[b2].len!==B.len)continue;const d1=this.bd[b],p1=this.bp[b],r1=this.br[b],d2=this.bd[b2],p2=this.bp[b2],r2=this.br[b2];
+    if(d1===d2&&Math.abs(p1-p2)<B.len)continue;const L=[b,b2],before=this.part(L);this.unplace(b);this.unplace(b2);let ok=false;const x=this.check(b,d2,p2);
+    if(x>=0){this.place(b,d2,p2,x);const y=this.check(b2,d1,p1);if(y>=0){this.place(b2,d1,p1,y);ok=true}else this.unplace(b)}
+    if(ok){const dl=this.part(L)-before;if(!(dl<=0||(T>0&&this.rnd()<Math.exp(-dl/T)))){this.unplace(b);this.unplace(b2);this.place(b,d1,p1,r1);this.place(b2,d2,p2,r2)}}
+    else{this.place(b,d1,p1,r1);this.place(b2,d2,p2,r2)}}}}
+ onTue(b){const pb=this.pb;if(this.bd[b]!==pb.tue.day)return false;for(let k=0;k<this.B[b].len;k++)if(pb.ses[this.bp[b]+k]===pb.tue.ses)return true;return false}
+ tueCount(){const pb=this.pb;if(!pb.tueOn)return 0;let n=0;for(let b=0;b<this.B.length;b++){if(this.bd[b]!==pb.tue.day)continue;for(let k=0;k<this.B[b].len;k++)if(pb.ses[this.bp[b]+k]===pb.tue.ses)n++}return n}
+ squeeze(rounds){const pb=this.pb;if(!pb.tueOn)return;
+  for(let r=0;r<rounds;r++){const list=[];for(let b=0;b<this.B.length;b++)if(this.onTue(b))list.push(b);if(!list.length)return;list.sort(()=>this.rnd()-.5);let imp=false;
+   for(const b of list){if(!this.onTue(b))continue;const before=this.tueCount(),sn=this.snap(),B=this.B[b],old=B.ban.slice();this.unplace(b);
+    for(let q=0;q<pb.NP;q++)if(pb.ses[q]===pb.tue.ses)B.ban[pb.tue.day*pb.NP+q]=1;
+    const q=[];let ok=this.putBest(b);if(!ok)ok=this.eject(b,1e9,q);if(ok)for(let i=0;i<q.length;i++){const x=q[i];if(this.bd[x]>=0)continue;if(!this.putBest(x)){ok=false;break}}
+    B.ban=old;if(!ok||this.tueCount()>=before)this.restore(sn);else imp=true}
+   if(!imp)return}}
+ toLessons(run){const per=P(),out=[];let n=0;for(let b=0;b<this.B.length;b++){if(this.bd[b]<0)continue;const B=this.B[b],bid='b'+run+'_'+b;for(let k=0;k<B.len;k++)out.push({id:'l'+run+'_'+(n++),bid,c:B.cid,s:B.sid,t:B.tid,r:this.pb.rooms[this.br[b]].id,d:this.bd[b],p:per[this.bp[b]+k].id})}return out}
+ diag(b){const pb=this.pb,B=this.B[b],cnt={};for(const d of pb.actDays)for(let p=0;p<pb.NP;p++){const r=this.check(b,d,p);if(r===-1)continue;const k=r>=0?'ok':r;cnt[k]=(cnt[k]||0)+1}
+  const pr=[];if(cnt[-3])pr.push('الأستاذ مشغول أو غير متوفر في '+cnt[-3]+' فترة');if(cnt[-2])pr.push('القسم مشغول في '+cnt[-2]);if(cnt[-4])pr.push('القاعة مشغولة في '+cnt[-4]);if(cnt[-5])pr.push('قيد إداري في '+cnt[-5]);if(cnt[-6])pr.push('حد يومي أو حصص متتالية في '+cnt[-6]);
+  return 'تعذر وضع حصة '+nm(S.subjects,B.sid)+(B.len>1?' (متصلة '+B.len+' ساعات)':'')+' لقسم '+nm(S.classes,B.cid)+' لأن جميع الفترات المتوافقة تؤدي إلى تعارض: '+(pr.join('، ')||'لا توجد فترات صالحة')+'.'}
+}
+
+/* ---------- validation & analysis ---------- */
+const TYPES={class:'تعارض القسم',teacher:'تعارض الأستاذ',room:'تعارض القاعة',roomx:'قاعة غير مناسبة',move:'خروج عن القاعة الأساسية',tunavail:'أستاذ غير متوفر',forbidden:'فترة غير مسموحة',rule:'قيد إداري',short:'نقص في الحجم الساعي',excess:'زيادة في الحجم الساعي',split:'حصة متصلة منفصلة',brk:'تجاوز الاستراحة',maxday:'تجاوز الحد اليومي',consec:'حصص متتالية زائدة'};
+function validate(L){
+ const out=[],per=P(),add=(type,msg)=>out.push({sev:'hard',type,msg});
+ const cN=id=>nm(S.classes,id),sN=id=>nm(S.subjects,id),tN=id=>nm(S.teachers,id),rN=id=>nm(S.rooms,id);
+ const when=l=>{const i=pIdx(l.p);return DAYS[l.d]+' '+(i>=0?per[i].start:'؟')};
+ const cm={},tm={},rm={},cnt={},cd={},cdl={};
+ L.forEach(l=>{const c=by(S.classes,l.c);if(!c){add('forbidden','حصة تابعة لقسم غير موجود');return}
+  const w=when(l),lab=sN(l.s)+' — '+c.name;
+  if(!enabled(l.d,l.p))add('forbidden','حصة '+lab+' موضوعة في فترة غير مسموحة ('+w+')');
+  const kc=l.c+'|'+l.d+'|'+l.p;if(cm[kc])add('class','القسم '+c.name+' لديه مادتان في نفس الوقت ('+w+'): '+sN(cm[kc].s)+' و'+sN(l.s));else cm[kc]=l;
+  if(l.t){const kt=l.t+'|'+l.d+'|'+l.p;if(tm[kt])add('teacher','الأستاذ '+tN(l.t)+' يدرّس قسمين في نفس الوقت ('+w+'): '+cN(tm[kt].c)+' و'+c.name);else tm[kt]=l;
+   const t=by(S.teachers,l.t);if(t&&(t.unavail||[]).includes(l.d+'-'+l.p))add('tunavail','الأستاذ '+t.name+' غير متوفر ('+w+') — حصة '+lab)}
+  if(l.r){const kr=l.r+'|'+l.d+'|'+l.p;if(rm[kr])add('room','القاعة '+rN(l.r)+' تستقبل قسمين في نفس الوقت ('+w+'): '+cN(rm[kr].c)+' و'+c.name);else rm[kr]=l}else add('roomx','حصة '+lab+' بلا قاعة ('+w+')');
+  const pr=progOf(c,l.s),rt=needRT(pr),room=by(S.rooms,l.r);if(!pr)add('excess','مادة '+sN(l.s)+' غير موجودة في برنامج القسم '+c.name);
+  if(room){if(!rt){if(l.r!==c.roomId)add('move','القسم '+c.name+' غادر قاعته الأساسية ('+rN(c.roomId)+') إلى '+room.name+' في حصة '+sN(l.s)+' ('+w+') — غير مسموح')}
+   else if(room.type!==rt)add('roomx','قاعة غير مناسبة: حصة '+lab+' تتطلب «'+rt+'» لكنها في '+room.name+' ('+w+')');
+   else if(room.subjectIds&&room.subjectIds.length&&!room.subjectIds.includes(l.s))add('roomx','القاعة '+room.name+' غير مخصصة لمادة '+sN(l.s));
+   if(S.capacity&&room.capacity&&c.size>room.capacity)add('roomx','سعة القاعة '+room.name+' ('+room.capacity+') أقل من عدد تلاميذ '+c.name)}
+  S.rules.forEach(r=>{if(!r.hard)return;if(r.subjectId&&r.subjectId!==l.s)return;if(r.classId&&r.classId!==l.c)return;if(r.teacherId&&r.teacherId!==l.t)return;if(r.day>=0&&r.day!==l.d)return;if(r.period&&r.period!==l.p)return;add('rule','حصة '+lab+' تخالف قيدًا إداريًا إلزاميًا ('+w+')')});
+  const k1=l.c+'|'+l.s;cnt[k1]=(cnt[k1]||0)+1;cd[k1+'|'+l.d]=(cd[k1+'|'+l.d]||0)+1;cdl[l.c+'|'+l.d]=(cdl[l.c+'|'+l.d]||0)+1});
+ const rows=[];
+ activeClasses().forEach(c=>{progsOf(c).forEach(pr=>{const got=cnt[c.id+'|'+pr.subjectId]||0,t=teacherFor(c.id,pr.subjectId);rows.push({c:c.id,s:pr.subjectId,t:t?t.name:'—',req:pr.hours,got,diff:got-pr.hours});
+   if(got<pr.hours)add('short','نقص في الحجم الساعي: '+c.name+' — '+sN(pr.subjectId)+' (المطلوب '+pr.hours+' / المبرمج '+got+')');else if(got>pr.hours)add('excess','زيادة في الحجم الساعي: '+c.name+' — '+sN(pr.subjectId)+' (المطلوب '+pr.hours+' / المبرمج '+got+')');
+   if(pr.maxDay>0)S.inst.days.forEach(d=>{if((cd[c.id+'|'+pr.subjectId+'|'+d]||0)>pr.maxDay)add('maxday',c.name+' — '+sN(pr.subjectId)+' تتجاوز '+pr.maxDay+' حصص يوم '+DAYS[d])});
+   if(pr.splittable===false){const ls=L.filter(l=>l.c===c.id&&l.s===pr.subjectId);if(new Set(ls.map(l=>l.d)).size>1)add('split','حصة '+sN(pr.subjectId)+' للقسم '+c.name+' يجب أن تكون متصلة في يوم واحد');
+    else{const ix=ls.map(l=>pIdx(l.p)).sort((a,b)=>a-b);for(let i=0;i<ix.length-1;i++)if(ix[i+1]!==ix[i]+1||!link(ix[i])){add('split','حصة '+sN(pr.subjectId)+' للقسم '+c.name+' يجب أن تكون متصلة');break}}}});
+  const st=by(S.streams,c.streamId);if(st&&st.maxDay>0)S.inst.days.forEach(d=>{if((cdl[c.id+'|'+d]||0)>st.maxDay)add('maxday','القسم '+c.name+' يتجاوز '+st.maxDay+' حصص يوم '+DAYS[d])})});
+ const bids={};L.forEach(l=>{if(l.bid)(bids[l.bid+'|'+l.d]=bids[l.bid+'|'+l.d]||[]).push(pIdx(l.p))});
+ for(const k in bids){const ix=bids[k].sort((a,b)=>a-b);for(let i=0;i<ix.length-1;i++)if(ix[i+1]!==ix[i]+1||!link(ix[i])){add('brk','حصة متصلة تتجاوز استراحة أو تنفصل ('+DAYS[+k.split('|')[1]]+')');break}}
+ S.teachers.forEach(t=>{if(!(t.maxConsec>0))return;S.inst.days.forEach(d=>{const ix=L.filter(l=>l.t===t.id&&l.d===d).map(l=>pIdx(l.p)).sort((a,b)=>a-b);let run=0;for(let i=0;i<ix.length;i++){run=(i>0&&ix[i]===ix[i-1]+1&&link(ix[i-1]))?run+1:1;if(run>t.maxConsec){add('consec','الأستاذ '+t.name+' لديه أكثر من '+t.maxConsec+' حصص متتالية يوم '+DAYS[d]);break}}})});
+ return{issues:out,rows,hard:out.length,conflicts:out.filter(x=>x.type!=='short'&&x.type!=='excess').length,missing:rows.filter(r=>r.diff<0).length};
+}
+function analyze(L){
+ const per=P(),cM={},tM={};let tue=0;const cs={};
+ L.forEach(l=>{const pi=pIdx(l.p);(cM[l.c+'|'+l.d]=cM[l.c+'|'+l.d]||[])[pi]=l;if(l.t)(tM[l.t+'|'+l.d]=tM[l.t+'|'+l.d]||[])[pi]=l;if(S.tue.on&&l.d===S.tue.day&&per[pi]&&per[pi].session===S.tue.ses)tue++});
+ const gaps=m=>{let g=0;for(const k in m){const d=+k.split('|')[1],arr=m[k];['m','e'].forEach(s=>{let f=-1,la=-1,c=0;arr.forEach((x,pi)=>{if(x&&per[pi].session===s){if(f<0)f=pi;la=pi;c++}});if(c){let e=0;for(let pi=f;pi<=la;pi++)if(per[pi].session===s&&enabled(d,per[pi].id))e++;g+=e-c}})}return g};
+ return{nClasses:activeClasses().length,nTeachers:S.teachers.length,nLessons:L.length,gapsC:gaps(cM),gapsT:gaps(tM),tue};
+}
+
+/* ---------- precheck ---------- */
+function longestRun(){let best=0;S.inst.days.forEach(d=>{let run=0;P().forEach((p,i)=>{if(enabled(d,p.id)){run=(i>0&&enabled(d,P()[i-1].id)&&link(i-1))?run+1:1;if(run>best)best=run}else run=0})});return best}
+function precheck(){
+ const out=[],E=m=>out.push({sev:'error',msg:m}),Wn=m=>out.push({sev:'warn',msg:m}),ac=activeClasses(),slots=totalSlots(),nd=S.inst.days.length,sN=id=>nm(S.subjects,id);
+ if(!nd||!slots)E('لا توجد أيام أو فترات دراسية فعّالة (صفحة أوقات الدراسة).');
+ if(!ac.length)E('لا توجد أقسام في السنة الدراسية النشطة.');
+ const homes={};
+ ac.forEach(c=>{const prs=progsOf(c),tot=prs.reduce((a,p)=>a+p.hours,0),st=by(S.streams,c.streamId);
+  if(!prs.length)E('القسم '+c.name+': لا يوجد برنامج دراسي لشعبته.');if(tot>slots)E('القسم '+c.name+': مجموع الحجم الساعي ('+tot+') أكبر من الفترات المتاحة ('+slots+').');
+  if(st&&st.maxDay>0&&st.maxDay*nd<tot)E('القسم '+c.name+': الحد اليومي للشعبة لا يسمح ببلوغ '+tot+' ساعة.');
+  const room=by(S.rooms,c.roomId);if(!room)E('القسم '+c.name+': لا توجد قاعة أساسية محددة.');else{if(room.type!=='عادية')Wn('القسم '+c.name+': قاعته الأساسية قاعة متخصصة.');(homes[room.id]=homes[room.id]||[]).push(c.name)}
+  prs.forEach(pr=>{const t=teacherFor(c.id,pr.subjectId);if(!t)E('القسم '+c.name+' — '+sN(pr.subjectId)+': لا يوجد أستاذ مُسنَد.');
+   if(pr.maxDay>0&&pr.maxDay*nd<pr.hours)E(c.name+' — '+sN(pr.subjectId)+': الحد اليومي لا يسمح ببلوغ '+pr.hours+' ساعة.');
+   if(pr.splittable===false&&pr.hours>longestRun())E(c.name+' — '+sN(pr.subjectId)+': '+pr.hours+' ساعات متصلة أكثر من أطول مدة متصلة متاحة.');
+   const rt=needRT(pr);if(rt&&!S.rooms.some(r=>r.type===rt))E(c.name+' — '+sN(pr.subjectId)+': لا توجد قاعة من نوع «'+rt+'».')})});
+ for(const k in homes)if(homes[k].length>1)Wn('قاعة '+nm(S.rooms,k)+' مشتركة كقاعة أساسية بين: '+homes[k].join('، ')+'.');
+ S.teachers.forEach(t=>{const l=teacherLoad(t);if(!l)return;let av=0;S.inst.days.forEach(d=>(S.inst.dayPeriods[d]||[]).forEach(p=>{if(pIdx(p)>=0&&!(t.unavail||[]).includes(d+'-'+p))av++}));if(l>av)E('الأستاذ '+t.name+': حمولته ('+l+') أكبر من الفترات المتاحة له ('+av+').')});
+ S.roomTypes.forEach(rt=>{if(rt==='عادية')return;let h=0;ac.forEach(c=>progsOf(c).forEach(p=>{if(needRT(p)===rt)h+=p.hours}));const n=S.rooms.filter(r=>r.type===rt).length;if(h>n*slots)E('الطلب على «'+rt+'» ('+h+' ساعة) يفوق طاقتها ('+n*slots+').')});
+ return out;
+}
+
+/* ---------- generation ---------- */
+async function generate(){
+ if(precheck().some(x=>x.sev==='error')){toast('أصلح الأخطاء الظاهرة أولاً');return}
+ UI.gen={run:true};UI.cand=[];render();
+ const pb=compile(),n=UI.opt.n,ms=UI.opt.ms,res=[],run=Date.now()%100000;
+ for(let i=0;i<n;i++){
+  let best=null;
+  for(let a=0;a<4;a++){const s=new Solver(pb,(run+i*7919+a*104729)|0);const un=s.construct(pb.blocks.length*70);await tick();if(!best||un.length<best.un.length)best={s,un};if(!un.length)break}
+  const s=best.s,t0=performance.now();
+  while(performance.now()-t0<ms){const f=(performance.now()-t0)/ms;s.improve(400,18*Math.pow(.03,f));await tick();
+   const pct=Math.round(((i+f)/n)*100),el=$('#prog'),tt=$('#progT');if(el)el.style.width=pct+'%';if(tt)tt.textContent='الحل '+(i+1)+' من '+n+' — '+pct+'%'}
+  s.squeeze(4);await tick();s.improve(3000,0);
+  const lessons=s.toLessons(run+'_'+i),v=validate(lessons),an=analyze(lessons),cost=s.total(),unp=best.un.map(b=>s.diag(b));
+  res.push({id:i+1,lessons,cost,unplaced:unp,hard:v.conflicts,missing:v.missing,an,q:Math.round(100*Math.exp(-cost/(pb.blocks.length*14)))});
+ }
+ res.sort((a,b)=>(a.missing-b.missing)||(a.hard-b.hard)||(a.cost-b.cost));UI.cand=res;UI.gen={done:true};if(UI.page==='gen')render();
+}
+function useCand(i){const c=UI.cand[i];S.timetable={lessons:JSON.parse(JSON.stringify(c.lessons)),sig:cfgSig(),final:false,created:Date.now(),cost:c.cost,q:c.q,unplaced:c.unplaced};save();UI.sel=null;UI.hints=null;UI.msg=null;A.nav('final')}
+
+/* ---------- manual move ---------- */
+function roomFor(copy,x){const c=by(S.classes,x.c),pr=c&&progOf(c,x.s),rt=needRT(pr);const busy=r=>copy.some(y=>y!==x&&y.r===r&&y.d===x.d&&y.p===x.p);
+ if(!rt)return c?c.roomId:x.r;const cur=by(S.rooms,x.r);if(x.r&&!busy(x.r)&&cur&&cur.type===rt)return x.r;
+ const alt=S.rooms.filter(r=>r.type===rt&&(!(r.subjectIds&&r.subjectIds.length)||r.subjectIds.includes(x.s))&&!busy(r.id));return alt.length?alt[0].id:x.r}
+function tryMove(lid,d,pid,apply){
+ const base=S.timetable.lessons,l=base.find(x=>x.id===lid);if(!l)return{ok:false,msg:'الحصة غير موجودة'};const per=P();
+ const mem=base.filter(x=>x.bid===l.bid&&x.d===l.d&&x.c===l.c).sort((a,b)=>pIdx(a.p)-pIdx(b.p)),off=mem.findIndex(m=>m.id===lid),ns=pIdx(pid)-off,L=mem.length;
+ if(ns<0||ns+L>per.length)return{ok:false,msg:'الحصة المتصلة لا تتسع في هذا الموضع'};
+ if(d===l.d&&ns===pIdx(mem[0].p))return{ok:false,msg:'نفس الموضع',same:true};
+ const np=mem.map((m,k)=>({d,p:per[ns+k].id})),ids=new Set(mem.map(m=>m.id)),occ=[];
+ np.forEach(x=>{const o=base.find(y=>y.c===l.c&&y.d===x.d&&y.p===x.p&&!ids.has(y.id));if(o&&occ.indexOf(o)<0)occ.push(o)});
+ const copy=base.map(x=>({...x})),g=id=>copy.find(x=>x.id===id),moved=mem.map(m=>m.id);
+ if(occ.length){const ob=occ[0].bid,om=base.filter(x=>x.bid===ob&&x.d===occ[0].d&&x.c===l.c).sort((a,b)=>pIdx(a.p)-pIdx(b.p));
+  if(!ob||om.length!==L||om.some(x=>occ.indexOf(x)<0))return{ok:false,msg:'الخانة مشغولة بحصة مختلفة الطول؛ انقل الحصة إلى خانة فارغة أو بدّلها بحصة من نفس الطول'};
+  om.forEach((o,k)=>{const x=g(o.id);x.d=mem[k].d;x.p=mem[k].p;moved.push(x.id)})}
+ mem.forEach((m,k)=>{const x=g(m.id);x.d=np[k].d;x.p=np[k].p});
+ moved.forEach(id=>{const x=g(id);x.r=roomFor(copy,x)});
+ const oldS=new Set(validate(base).issues.map(i=>i.type+i.msg)),nv=validate(copy).issues.filter(i=>!oldS.has(i.type+i.msg));
+ if(nv.length)return{ok:false,msg:'لا يمكن النقل: '+nv.slice(0,3).map(i=>i.msg).join(' | ')};
+ if(apply){S.timetable.lessons=copy;S.timetable.final=false;save()}return{ok:true}}
+
+/* ---------- ui helpers ---------- */
+function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2800)}
+const card=(t,b)=>'<section class="card">'+(t?'<h3>'+t+'</h3>':'')+b+'</section>';
+const note=(t,k='')=>'<p class="note '+k+'">'+t+'</p>';
+const btn=(a,l,c='')=>'<button class="btn '+c+'" data-act="'+a+'">'+l+'</button>';
+const getCol=c=>c==='periods'?S.inst.periods:S[c];
+function inp(col,id,f,v,o={}){const t=o.type||'text';return '<input class="in" type="'+t+'" value="'+esc(v)+'" data-col="'+col+'" data-id="'+id+'" data-f="'+f+'" data-t="'+(t==='number'?'number':'text')+'"'+(o.min!=null?' min="'+o.min+'"':'')+(o.max!=null?' max="'+o.max+'"':'')+(o.rr?' data-rr="1"':'')+(o.w?' style="width:'+o.w+'"':'')+'>'}
+function sel(col,id,f,v,opts,o={}){return '<select class="in" data-col="'+col+'" data-id="'+id+'" data-f="'+f+'" data-t="'+(o.t||'text')+'"'+(o.rr?' data-rr="1"':'')+'>'+opts.map(([k,l])=>'<option value="'+esc(k)+'"'+(String(k)===String(v)?' selected':'')+'>'+esc(l)+'</option>').join('')+'</select>'}
+const chk=(col,id,f,v,rr)=>'<input type="checkbox" '+(v?'checked ':'')+'data-col="'+col+'" data-id="'+id+'" data-f="'+f+'" data-t="bool"'+(rr?' data-rr="1"':'')+'>';
+const uiSel=(k,v,opts)=>'<select class="in" data-ui="'+k+'">'+opts.map(([a,l])=>'<option value="'+esc(a)+'"'+(String(a)===String(v)?' selected':'')+'>'+esc(l)+'</option>').join('')+'</select>';
+const tbl=(h,rows)=>'<div class="tw"><table class="t"><thead><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+const delB=(col,id)=>'<button class="btn sm d" data-act="del|'+col+'|'+id+'">حذف</button>';
+const hue=sid=>{const i=S.subjects.findIndex(s=>s.id===sid);return((i<0?0:i)*47+200)%360};
+const emptyTT=()=>card('',note('لا يوجد توقيت بعد. أنشئ التوقيت من صفحة «إنشاء التوقيت».','wn')+btn('nav|gen','إنشاء التوقيت','p'));
+function usedPeriods(){return P().map((p,i)=>i).filter(i=>S.inst.days.some(d=>enabled(d,P()[i].id)))}
+function gridHTML(cellFn,cls=''){
+ const per=P(),used=usedPeriods(),days=sortedDays();if(!used.length)return note('لا توجد فترات فعّالة.','wn');
+ let h='<div class="tw '+cls+'"><table class="tt"><thead><tr><th class="tc">الوقت</th>'+days.map(d=>'<th>'+DAYS[d]+'</th>').join('')+'</tr></thead><tbody>';
+ used.forEach((pi,ix)=>{const p=per[pi];h+='<tr><th class="tc"><b>'+p.start+'</b><span>'+p.end+'</span></th>';
+  days.forEach(d=>{if(!enabled(d,p.id)){h+='<td class="off"></td>';return}const c=cellFn(d,p.id,pi)||{},tue=S.tue.on&&d===S.tue.day&&p.session===S.tue.ses;
+   h+='<td class="slot '+(tue?'tue ':'')+(c.cls||'')+'" data-d="'+d+'" data-p="'+p.id+'"'+(c.attr||'')+'>'+(c.html||'')+'</td>'});
+  h+='</tr>';const nx=used[ix+1];if(nx!==undefined&&(p.breakAfter||per[nx].session!==p.session))h+='<tr class="brk"><td colspan="'+(days.length+1)+'">'+(per[nx].session!==p.session?'استراحة الغداء':'استراحة')+'</td></tr>'});
+ return h+'</tbody></table></div>';
+}
+function makeIdx(L){const I={c:{},t:{},r:{}};L.forEach(l=>{I.c[l.c+'|'+l.d+'|'+l.p]=l;if(l.t)I.t[l.t+'|'+l.d+'|'+l.p]=l;if(l.r)I.r[l.r+'|'+l.d+'|'+l.p]=l});return I}
+function lessonCell(l,mode,drag){
+ const s=by(S.subjects,l.s),t=by(S.teachers,l.t),r=by(S.rooms,l.r),c=by(S.classes,l.c),spec=r&&r.type!=='عادية';
+ const ln=mode==='c'?[s&&s.name,t&&t.name,r&&r.name]:mode==='t'?[c&&c.name,s&&s.name,r&&r.name]:[c&&c.name,s&&s.name,t&&t.name];
+ return '<div class="ls'+(spec?' spec':'')+'" style="--h:'+hue(l.s)+'"'+(drag?' draggable="true" data-lid="'+l.id+'"':'')+'><b>'+esc(ln[0])+'</b><span>'+esc(ln[1])+'</span><em>'+esc(ln[2])+'</em>'+(spec&&mode==='c'?'<i class="mv">تنقّل</i>':'')+'</div>';
+}
+function staleBanner(){const tt=S.timetable;return tt&&tt.sig!==cfgSig()?note('تغيّرت المعطيات بعد إنشاء هذا التوقيت. راجع تقرير التعارضات أو أعد إنشاء التوقيت.','wn'):''}
+function ttStatus(){const tt=S.timetable;if(!tt)return null;const v=validate(tt.lessons);return{v,ok:v.hard===0&&!(tt.unplaced&&tt.unplaced.length)&&tt.sig===cfgSig(),an:analyze(tt.lessons)}}
+function sheetHTML(kind,id){const tt=S.timetable,I=makeIdx(tt.lessons);
+ const title=kind==='c'?'جدول القسم: '+nm(S.classes,id):kind==='t'?'جدول الأستاذ: '+nm(S.teachers,id):'جدول القاعة: '+nm(S.rooms,id);
+ return '<section class="psheet"><h2>'+esc(S.inst.name||'المؤسسة')+'</h2><p>'+esc(title)+' — السنة الدراسية '+esc(S.inst.year)+'</p>'+gridHTML((d,pid)=>{const l=I[kind][id+'|'+d+'|'+pid];return l?{html:lessonCell(l,kind)}:{}})+'</section>'}
+function scopeList(scope,id){const tt=S.timetable;
+ if(scope==='one')return[['c',id||(activeClasses()[0]||{}).id]];if(scope==='allc')return activeClasses().map(c=>['c',c.id]);
+ if(scope==='allt')return S.teachers.filter(t=>tt.lessons.some(l=>l.t===t.id)).map(t=>['t',t.id]);return S.rooms.filter(r=>tt.lessons.some(l=>l.r===r.id)).map(r=>['r',r.id])}
+
+/* ---------- pages ---------- */
+const PAGES={},TITLES={dash:'لوحة التحكم',inst:'إعداد المؤسسة',years:'السنوات والمستويات',streams:'الشعب',classes:'الأقسام',subjects:'المواد والبرامج',teachers:'الأساتذة',rooms:'القاعات',times:'أوقات الدراسة',rules:'القيود والتفضيلات',gen:'إنشاء التوقيت',final:'التوقيت النهائي',class:'جدول كل قسم',teacher:'جدول كل أستاذ',room:'جدول القاعات',conf:'تقرير التعارضات',hours:'تقرير الحجم الساعي',export:'التصدير والطباعة'};
+const NAV=[['الرئيسية',['dash']],['الإعداد',['inst','years','streams','classes','subjects','teachers','rooms','times','rules']],['التوقيت',['gen','final','class','teacher','room']],['التقارير',['conf','hours','export']]];
+
+PAGES.dash=()=>{
+ const ac=activeClasses(),pre=precheck(),errs=pre.filter(x=>x.sev==='error'),tt=S.timetable,days=sortedDays(),used=usedPeriods();
+ const cnt={};if(tt)tt.lessons.forEach(l=>{const k=l.d+'|'+l.p;cnt[k]=(cnt[k]||0)+1});const mx=Math.max(1,ac.length);
+ const hm='<div class="tw"><table class="hm"><tr><th></th>'+days.map(d=>'<th>'+DAYS[d]+'</th>').join('')+'</tr>'+used.map(pi=>{const p=P()[pi];return '<tr><th>'+p.start+'</th>'+days.map(d=>{if(!enabled(d,p.id))return '<td></td>';const v=cnt[d+'|'+p.id]||0,a=v/mx,tue=S.tue.on&&d===S.tue.day&&p.session===S.tue.ses;return '<td style="background:rgba(46,102,196,'+(a*.85).toFixed(2)+');color:'+(a>.5?'#fff':'inherit')+(tue?';box-shadow:inset 0 0 0 3px var(--hl)':'')+'">'+(tt?v:'')+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>';
+ return '<div class="hero"><h2>منصة جداول التوقيت المدرسية</h2><p>محرك جدولة يبني توقيت الأقسام والأساتذة والقاعات دون تعارض، ويحترم برنامج كل شعبة وحجمها الساعي.</p><div class="row">'+btn('nav|gen','إنشاء التوقيت','p')+btn('demo','تحميل بيانات تجريبية')+'</div></div>'+
+ '<div class="stats">'+[['المستويات',S.levels.length],['الشعب',S.streams.length],['الأقسام',ac.length],['الأساتذة',S.teachers.length],['القاعات',S.rooms.length],['حصص الأسبوع',ac.reduce((a,c)=>a+progsOf(c).reduce((x,p)=>x+p.hours,0),0)]].map(([l,v])=>'<div class="stat"><b>'+v+'</b><span>'+l+'</span></div>').join('')+'</div>'+
+ card('خريطة الأسبوع'+(tt?' — عدد الأقسام المشغولة في كل فترة':''),(tt?'':note('ستظهر هنا كثافة الحصص بعد إنشاء التوقيت.'))+hm+(S.tue.on?note('الإطار الأصفر = الثلاثاء مساءً: آخر خيار في الجدولة.'):''))+
+ card('جاهزية البيانات',errs.length?errs.slice(0,8).map(x=>note(esc(x.msg),'bad')).join('')+(errs.length>8?note('و'+(errs.length-8)+' أخطاء أخرى'):'')+(errs.some(e=>e.msg.includes('أستاذ مُسنَد'))?btn('autot','إسناد الأساتذة تلقائيًا','p'):''):(ac.length?note('البيانات جاهزة للتوليد.','ok'):note('ابدأ بإضافة مستوى وشعبة وأقسام، أو حمّل البيانات التجريبية.','wn')))+
+ card('نسخة احتياطية',note('تُحفظ بياناتك في هذا المتصفح. يمكنك تصديرها واستيرادها.')+'<div class="row">'+btn('backup','تنزيل نسخة JSON')+'<label class="btn">استيراد نسخة<input id="fImp" type="file" accept=".json" hidden></label>'+btn('reset','مسح كل البيانات','d')+'</div>');
+};
+PAGES.inst=()=>card('بيانات المؤسسة','<div class="fg">'+[['name','اسم المؤسسة'],['city','البلدية / الولاية'],['dir','المديرية'],['head','المدير(ة)'],['year','السنة الدراسية (للطباعة)']].map(([f,l])=>'<label class="f"><span>'+l+'</span>'+inp('inst','',f,S.inst[f])+'</label>').join('')+'</div>');
+PAGES.years=()=>card('السنوات الدراسية',tbl(['نشطة','الاسم',''],S.years.map(y=>'<tr><td><input type="radio" name="ay" '+(S.activeYear===y.id?'checked':'')+' data-act="setYear|'+y.id+'"></td><td>'+inp('years',y.id,'name',y.name)+'</td><td>'+(S.years.length>1?delB('years',y.id):'')+'</td></tr>'))+btn('add|years','+ سنة'))+
+ card('المستويات',tbl(['المستوى','السنة',''],S.levels.map(l=>'<tr><td>'+inp('levels',l.id,'name',l.name)+'</td><td>'+sel('levels',l.id,'yearId',l.yearId,S.years.map(y=>[y.id,y.name]),{rr:1})+'</td><td>'+delB('levels',l.id)+'</td></tr>'))+btn('add|levels','+ مستوى'));
+PAGES.streams=()=>card('الشعب',(S.levels.length?'':note('أضف مستوى أولاً.','wn'))+tbl(['المستوى','الشعبة','أقصى حصص يوميًا للقسم (0 = بلا حد)','أدنى حصص يوميًا','عدد الأقسام',''],S.streams.map(s=>'<tr><td>'+sel('streams',s.id,'levelId',s.levelId,S.levels.map(l=>[l.id,l.name]))+'</td><td>'+inp('streams',s.id,'name',s.name)+'</td><td>'+inp('streams',s.id,'maxDay',s.maxDay||0,{type:'number',min:0,w:'80px'})+'</td><td>'+inp('streams',s.id,'minDay',s.minDay||0,{type:'number',min:0,w:'80px'})+'</td><td>'+S.classes.filter(c=>c.streamId===s.id).length+'</td><td>'+delB('streams',s.id)+'</td></tr>'))+btn('add|streams','+ شعبة'));
+PAGES.classes=()=>{const regs=S.rooms.filter(r=>r.type==='عادية').map(r=>[r.id,r.name]);
+ return card('الأقسام',tbl(['الشعبة','القسم','التلاميذ','القاعة الأساسية (ثابتة)',''],S.classes.map(c=>'<tr><td>'+sel('classes',c.id,'streamId',c.streamId,S.streams.map(s=>[s.id,(nm(S.levels,s.levelId,'')+' '+s.name).trim()]))+'</td><td>'+inp('classes',c.id,'name',c.name)+'</td><td>'+inp('classes',c.id,'size',c.size,{type:'number',min:1,w:'80px'})+'</td><td>'+sel('classes',c.id,'roomId',c.roomId,[['','— اختر —']].concat(regs))+'</td><td>'+delB('classes',c.id)+'</td></tr>'))+'<div class="row">'+btn('add|classes','+ قسم')+btn('autoroom','تعيين قاعات أساسية تلقائيًا')+'</div>')+
+ card('إضافة أقسام دفعة واحدة','<div class="row">'+uiSel('gs',UI.gs||(S.streams[0]||{}).id,S.streams.map(s=>[s.id,s.name]))+'<input class="in" type="number" min="1" max="20" value="'+(UI.gn||2)+'" data-ui="gn" style="width:80px">'+btn('genclasses','إنشاء')+'</div>')};
+PAGES.subjects=()=>{
+ let h='';if(S.streams.length){if(!by(S.streams,UI.pst))UI.pst=S.streams[0].id;const st=by(S.streams,UI.pst),rows=S.programs.filter(p=>p.streamId===st.id),tot=rows.reduce((a,p)=>a+(+p.hours||0),0),sub=S.subjects.map(s=>[s.id,s.name]),rt=S.roomTypes.map(t=>[t,t]);
+  h+=card('برنامج الشعبة','<div class="row">'+uiSel('pst',UI.pst,S.streams.map(s=>[s.id,nm(S.levels,s.levelId,'')+' '+s.name]))+'<span class="badge">المجموع: '+tot+' ساعة/أسبوع</span></div>'+
+  tbl(['المادة','الساعات','المعامل','أساسية','ثقيلة','قاعة متخصصة','قابلة للتقسيم','حجم الحصة','أدنى/يوم','أقصى/يوم',''],rows.map(p=>'<tr><td>'+sel('programs',p.id,'subjectId',p.subjectId,sub)+'</td><td>'+inp('programs',p.id,'hours',p.hours,{type:'number',min:0,max:20,w:'64px',rr:1})+'</td><td>'+inp('programs',p.id,'coef',p.coef,{type:'number',min:0,w:'60px'})+'</td><td>'+chk('programs',p.id,'core',p.core)+'</td><td>'+chk('programs',p.id,'heavy',p.heavy)+'</td><td>'+sel('programs',p.id,'roomType',p.roomType||'عادية',rt)+'</td><td>'+chk('programs',p.id,'splittable',p.splittable!==false)+'</td><td>'+inp('programs',p.id,'blockSize',p.blockSize||1,{type:'number',min:1,max:6,w:'60px'})+'</td><td>'+inp('programs',p.id,'minDay',p.minDay||0,{type:'number',min:0,w:'60px'})+'</td><td>'+inp('programs',p.id,'maxDay',p.maxDay||0,{type:'number',min:0,w:'60px'})+'</td><td>'+delB('programs',p.id)+'</td></tr>'))+
+  '<div class="row">'+btn('add|programs','+ مادة في البرنامج')+uiSel('cp',UI.cp||'',[['','نسخ برنامج من شعبة…']].concat(S.streams.filter(s=>s.id!==st.id).map(s=>[s.id,s.name])))+btn('copyprog','نسخ')+'</div>'+note('«غير قابلة للتقسيم» تعني أن كل الساعات حصة متصلة واحدة. «أقصى/يوم» حد إلزامي لحصص المادة في اليوم.'))}else h+=note('أضف شعبة أولاً.','wn');
+ return h+card('المواد',tbl(['المادة','النوع',''],S.subjects.map(s=>'<tr><td>'+inp('subjects',s.id,'name',s.name)+'</td><td>'+sel('subjects',s.id,'type',s.type,['علمية','أدبية','لغات','تقنية','شرعية','رياضة'].map(x=>[x,x]))+'</td><td>'+delB('subjects',s.id)+'</td></tr>'))+btn('add|subjects','+ مادة'))};
+PAGES.teachers=()=>{const per=P();
+ return card('الأساتذة',(precheck().some(x=>x.msg.includes('أستاذ مُسنَد'))?btn('autot','إسناد تلقائي للحصص غير المسندة','p'):'')+btn('add|teachers','+ أستاذ'))+S.teachers.map(t=>{
+  const av=S.classes.filter(c=>S.programs.some(p=>p.streamId===c.streamId&&p.subjectId===t.subjectId&&p.hours>0));
+  const grid=gridHTML((d,pid)=>{const k=d+'-'+pid,u=(t.unavail||[]).includes(k),p=(t.pref||[]).includes(k);return{html:'<button class="av '+(u?'u':p?'p':'')+'" data-act="togT|'+t.id+'|'+d+'|'+pid+'">'+(u?'غير متوفر':p?'مفضّل':'متوفر')+'</button>'}});
+  return '<section class="card"><div class="row">'+inp('teachers',t.id,'name',t.name)+sel('teachers',t.id,'subjectId',t.subjectId,[['','— المادة —']].concat(S.subjects.map(s=>[s.id,s.name])),{rr:1})+'<label>أقصى حصص متتالية '+inp('teachers',t.id,'maxConsec',t.maxConsec||0,{type:'number',min:0,max:8,w:'64px'})+'</label><span class="badge">الحمولة: '+teacherLoad(t)+' ساعة</span>'+delB('teachers',t.id)+'</div>'+
+  '<div class="chips">'+(av.length?av.map(c=>'<span class="chip '+(t.classIds.includes(c.id)?'on':'')+'" data-act="tcls|'+t.id+'|'+c.id+'">'+esc(c.name)+'</span>').join(''):'<small>اختر المادة لعرض الأقسام التي تدرسها.</small>')+'</div>'+
+  '<details><summary>أوقات التوفر (اضغط الخانة: متوفر ← غير متوفر ← مفضّل)</summary>'+grid+'</details></section>'}).join('')};
+PAGES.rooms=()=>card('أنواع القاعات','<div class="chips">'+S.roomTypes.map(t=>'<span class="badge">'+esc(t)+(t!=='عادية'?' <a data-act="delrt|'+esc(t)+'" style="cursor:pointer;color:var(--bad)">×</a>':'')+'</span>').join('')+'</div><div class="row"><input id="newrt" class="in" placeholder="نوع جديد">'+btn('addrt','إضافة')+'</div>')+
+ S.rooms.map(r=>'<section class="card"><div class="row">'+inp('rooms',r.id,'name',r.name)+sel('rooms',r.id,'type',r.type,S.roomTypes.map(t=>[t,t]))+'<label>السعة '+inp('rooms',r.id,'capacity',r.capacity,{type:'number',min:1,w:'80px'})+'</label>'+delB('rooms',r.id)+'</div>'+(r.type!=='عادية'?'<details><summary>المواد المسموح بها (فارغ = كل المواد)</summary><div class="chips">'+S.subjects.map(s=>'<span class="chip '+((r.subjectIds||[]).includes(s.id)?'on':'')+'" data-act="rsub|'+r.id+'|'+s.id+'">'+esc(s.name)+'</span>').join('')+'</div></details>':'')+'</section>').join('')+btn('add|rooms','+ قاعة');
+PAGES.times=()=>card('أيام الدراسة','<div class="chips">'+DAYS.map((d,i)=>'<span class="chip '+(S.inst.days.includes(i)?'on':'')+'" data-act="togDay|'+i+'">'+d+'</span>').join('')+'</div>')+
+ card('الفترات (حصة = ساعة)',tbl(['البداية','النهاية','الدوام','استراحة بعدها',''],P().map(p=>'<tr><td>'+inp('periods',p.id,'start',p.start,{type:'time',rr:1})+'</td><td>'+inp('periods',p.id,'end',p.end,{type:'time'})+'</td><td>'+sel('periods',p.id,'session',p.session,[['m','صباحي'],['e','مسائي']],{rr:1})+'</td><td>'+chk('periods',p.id,'breakAfter',p.breakAfter,1)+'</td><td>'+delB('periods',p.id)+'</td></tr>'))+btn('addp','+ فترة'))+
+ card('الفترات الفعّالة في كل يوم',gridHTML((d,pid)=>({html:'<button class="av p" data-act="togSlot|'+d+'|'+pid+'">فعّالة</button>'}))+note('لإيقاف فترة في يوم معيّن، ألغِ يوم الدراسة أولاً ثم فعّله، أو عدّل الجدول التالي.')+'<div class="tw"><table class="t"><tr><th></th>'+P().map(p=>'<th>'+p.start+'</th>').join('')+'</tr>'+sortedDays().map(d=>'<tr><th>'+DAYS[d]+'</th>'+P().map(p=>'<td><input type="checkbox" '+((S.inst.dayPeriods[d]||[]).includes(p.id)?'checked':'')+' data-act="togSlot|'+d+'|'+p.id+'"></td>').join('')+'</tr>').join('')+'</table></div>');
+PAGES.rules=()=>{const pf=S.prefs,lab={coreSpread:'توزيع المواد الأساسية على الأسبوع',heavy:'تجنب تكديس المواد الثقيلة',gapC:'تقليل فراغات التلميذ',gapT:'تقليل فراغات الأستاذ',longRun:'تجنب الساعات المتواصلة لنفس المادة',hours:'توزيع الحجم الساعي منطقيًا',awk:'تجنب البدايات والنهايات غير المريحة',balance:'توازن أيام الدراسة'};
+ const dopt=[[-1,'كل الأيام']].concat(DAYS.map((d,i)=>[i,d])),popt=[['','كل الفترات']].concat(P().map(p=>[p.id,p.start]));
+ return card('قيود إلزامية (مفعّلة دائمًا)','<ol style="margin:0;padding-inline-start:20px">'+['قسم واحد لا يدرس مادتين معًا','أستاذ واحد لا يدرّس قسمين معًا','قاعة واحدة لا تستقبل قسمين معًا','توفر الأستاذ','القاعات المتخصصة والمخابر','الحجم الساعي الكامل لكل مادة','أيام الدراسة وأوقاتها والاستراحات','القاعة الأساسية ثابتة؛ التنقل فقط إلى قاعة متخصصة تتطلبها الحصة'].map(x=>'<li>'+x+'</li>').join('')+'</ol><div class="row"><label><input type="checkbox" '+(S.capacity?'checked':'')+' data-col="capacity-flag" data-act="togCap"> اعتبار سعة القاعة المتخصصة قيدًا إلزاميًا</label></div>')+
+ card('قاعدة الثلاثاء مساءً','<div class="row"><label>'+chk('tue','','on',S.tue.on)+' تفعيل</label>'+sel('tue','','day',S.tue.day,DAYS.map((d,i)=>[i,d]),{t:'number'})+sel('tue','','ses',S.tue.ses,[['e','مساءً'],['m','صباحًا']])+'</div>'+note('تُفرَّغ هذه الفترة قدر الإمكان، وتُستعمل كآخر خيار فقط عند تعذر إكمال الحجم الساعي، ولا تُخرق القيود الإلزامية من أجلها.'))+
+ card('أهمية التفضيلات (0–10)',Object.keys(lab).map(k=>'<div class="row"><span style="min-width:230px">'+lab[k]+'</span><input type="range" min="0" max="10" value="'+pf[k]+'" data-col="prefs" data-id="" data-f="'+k+'" data-t="number"><b>'+pf[k]+'</b></div>').join(''))+
+ card('قيود إضافية',tbl(['النوع','المادة','القسم','الأستاذ','اليوم','الفترة',''],S.rules.map(r=>'<tr><td>'+sel('rules',r.id,'hard',r.hard,[[true,'منع إلزامي'],[false,'تجنب (تفضيلي)']],{t:'bool'})+'</td><td>'+sel('rules',r.id,'subjectId',r.subjectId,[['','أي مادة']].concat(S.subjects.map(s=>[s.id,s.name])))+'</td><td>'+sel('rules',r.id,'classId',r.classId,[['','أي قسم']].concat(S.classes.map(s=>[s.id,s.name])))+'</td><td>'+sel('rules',r.id,'teacherId',r.teacherId,[['','أي أستاذ']].concat(S.teachers.map(s=>[s.id,s.name])))+'</td><td>'+sel('rules',r.id,'day',r.day,dopt,{t:'number'})+'</td><td>'+sel('rules',r.id,'period',r.period,popt)+'</td><td>'+delB('rules',r.id)+'</td></tr>'))+btn('add|rules','+ قيد'))};
+PAGES.gen=()=>{const pre=precheck(),g=UI.gen||{};
+ const cands=UI.cand.map((c,i)=>'<div class="cand"><div class="row"><b>الحل #'+(i+1)+'</b>'+(c.hard===0&&c.missing===0&&!c.unplaced.length?'<span class="badge ok">صالح</span>':'<span class="badge bad">غير مكتمل</span>')+(i===0?'<span class="badge wn">الأفضل</span>':'')+'</div><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><b>'+c.q+'%</b><span>نقاط الجودة</span></div><div class="stat"><b>'+c.an.tue+'</b><span>حصص الثلاثاء مساءً</span></div><div class="stat"><b>'+c.an.gapsC+'</b><span>فراغات الأقسام</span></div><div class="stat"><b>'+c.an.gapsT+'</b><span>فراغات الأساتذة</span></div></div><p>تعارضات إلزامية: '+c.hard+' — حصص ناقصة: '+c.missing+'</p>'+btn('use|'+i,'اعتماد كمسودة','p')+'</div>').join('');
+ return card('خيارات الإنشاء','<div class="row"><label>عدد الحلول '+uiSel('opt.n',UI.opt.n,[[3,'3'],[4,'4'],[6,'6'],[8,'8']])+'</label><label>الجودة '+uiSel('opt.ms',UI.opt.ms,[[1200,'سريعة'],[2500,'متوازنة'],[6000,'عميقة']])+'</label><button class="btn p" data-act="gen"'+(g.run?' disabled':'')+'>'+(g.run?'جارٍ الإنشاء…':'إنشاء التوقيت')+'</button></div>'+(g.run?'<div class="bar"><i id="prog"></i></div><p id="progT"></p>':'')+note('يبني المحرك عدة حلول، يتحقق من كل واحد، ثم يرتبها: لا تعارض إلزامي، اكتمال الأحجام الساعية، ثم جودة التوزيع وتفريغ الثلاثاء مساءً.'))+
+ card('فحص البيانات',pre.length?pre.map(x=>note(esc(x.msg),x.sev==='error'?'bad':'wn')).join('')+(pre.some(x=>x.msg.includes('أستاذ مُسنَد'))?btn('autot','إسناد الأساتذة تلقائيًا','p'):''):note('كل شيء جاهز.','ok'))+(UI.cand.length?card('الحلول المقترحة','<div class="cands">'+cands+'</div>'+UI.cand.filter(c=>c.unplaced.length).slice(0,1).map(c=>c.unplaced.slice(0,6).map(u=>note(esc(u),'bad')).join('')).join('')):'')};
+PAGES.final=()=>{const tt=S.timetable;if(!tt)return emptyTT();const s=ttStatus(),v=s.v,an=s.an,ac=activeClasses(),days=sortedDays(),used=usedPeriods(),I={};tt.lessons.forEach(l=>I[l.c+'|'+l.d+'|'+l.p]=l);
+ if(!days.includes(UI.tab))UI.tab=days[0];const done=v.rows.filter(r=>r.diff===0).length,bad=v.rows.length-done;
+ return staleBanner()+card('حالة التوقيت','<div class="row"><span class="badge '+(s.ok?'ok':'bad')+'" style="font-size:15px">'+(s.ok?'مكتمل':'غير مكتمل')+'</span>'+(tt.final?'<span class="badge ok">معتمد نهائيًا</span>':'')+'</div><div class="stats">'+[['الأقسام',an.nClasses],['الأساتذة',an.nTeachers],['الحصص',an.nLessons],['التعارضات',v.conflicts],['الفراغات (الأقسام)',an.gapsC],['مواد مكتملة',done],['مواد ناقصة',bad],['الثلاثاء مساءً',S.tue.on?(an.tue===0?'فارغ':'غير فارغ'):'—'],['حصص الثلاثاء مساءً',an.tue]].map(([l,x])=>'<div class="stat"><b>'+x+'</b><span>'+l+'</span></div>').join('')+'</div><div class="row">'+(tt.final?btn('unfinal','إلغاء الاعتماد'):'<button class="btn p" data-act="finalize"'+(s.ok?'':' disabled')+'>اعتماد كتوقيت نهائي</button>')+btn('nav|conf','تقرير التعارضات')+'</div>'+(s.ok?'':note('لا يمكن الاعتماد قبل إزالة كل مخالفة لقيد إلزامي وإكمال الأحجام الساعية.','wn')))+
+ card('الجدول العام','<div class="chips">'+days.map(d=>'<span class="chip '+(UI.tab===d?'on':'')+'" data-act="tab|'+d+'">'+DAYS[d]+'</span>').join('')+'</div><div class="tw"><table class="tt"><tr><th>القسم</th>'+used.filter(pi=>enabled(UI.tab,P()[pi].id)).map(pi=>'<th>'+P()[pi].start+'</th>').join('')+'</tr>'+ac.map(c=>'<tr><th>'+esc(c.name)+'</th>'+used.filter(pi=>enabled(UI.tab,P()[pi].id)).map(pi=>{const l=I[c.id+'|'+UI.tab+'|'+P()[pi].id];return '<td class="slot">'+(l?lessonCell(l,'c'):'')+'</td>'}).join('')+'</tr>').join('')+'</table></div>')};
+function schedPage(kind){const tt=S.timetable;if(!tt)return emptyTT();const I=makeIdx(tt.lessons);let list,key;
+ if(kind==='c'){list=activeClasses();key='cls'}else if(kind==='t'){list=S.teachers;key='tch'}else{list=S.rooms;key='room'}
+ if(!list.length)return card('',note('لا توجد بيانات.','wn'));if(!by(list,UI[key]))UI[key]=list[0].id;const id=UI[key],edit=kind==='c';
+ let extra='';if(kind==='c'){const mv=tt.lessons.filter(l=>l.c===id&&by(S.rooms,l.r)&&by(S.rooms,l.r).type!=='عادية').sort((a,b)=>a.d-b.d||pIdx(a.p)-pIdx(b.p));
+  extra=card('التنقل إلى القاعات المتخصصة (القاعة الأساسية: '+esc(nm(S.rooms,(by(S.classes,id)||{}).roomId))+')',mv.length?tbl(['اليوم','الوقت','المادة','القاعة'],mv.map(l=>'<tr><td>'+DAYS[l.d]+'</td><td>'+P()[pIdx(l.p)].start+'</td><td>'+esc(nm(S.subjects,l.s))+'</td><td>'+esc(nm(S.rooms,l.r))+'</td></tr>')):note('لا تنقّل: كل الحصص في القاعة الأساسية.'))}
+ const g=gridHTML((d,pid)=>{const l=I[kind][id+'|'+d+'|'+pid];const h=UI.hints&&UI.hints[d+'|'+pid];let cls='';if(edit){if(l&&UI.sel){const s=tt.lessons.find(x=>x.id===UI.sel);if(s&&l.bid===s.bid&&l.d===s.d)cls='sel'}if(h==='ok')cls+=' hok';else if(h==='no')cls+=' hno'}
+  return{html:l?lessonCell(l,kind,edit):'',cls,attr:edit?' data-act="cell|'+d+'|'+pid+'"':''}},edit?'edit':'');
+ return staleBanner()+card('','<div class="row">'+uiSel(key,id,list.map(x=>[x.id,x.name]))+btn('print|one|'+kind,'طباعة')+'</div>'+(edit?note('للتعديل: اسحب الحصة إلى خانة أخرى، أو اضغط الحصة ثم اضغط الخانة الهدف (الخانات الخضراء مسموحة). يُمنع أي نقل يخالف قيدًا إلزاميًا.'):'')+(UI.msg&&edit?note(esc(UI.msg.t),UI.msg.k):'')+g)+extra}
+PAGES.class=()=>schedPage('c');PAGES.teacher=()=>schedPage('t');PAGES.room=()=>schedPage('r');
+PAGES.conf=()=>{const pre=precheck(),tt=S.timetable;let h=card('فحص البيانات (قبل الإنشاء)',pre.length?pre.map(x=>note(esc(x.msg),x.sev==='error'?'bad':'wn')).join(''):note('لا ملاحظات.','ok'));
+ if(!tt)return h+emptyTT();const v=validate(tt.lessons),g={};v.issues.forEach(i=>(g[i.type]=g[i.type]||[]).push(i.msg));
+ return staleBanner()+card('نتيجة التحقق من التوقيت',v.hard?note('عدد المخالفات: '+v.hard,'bad'):note('لا توجد أي مخالفة إلزامية.','ok')+'')+Object.keys(g).map(k=>card(TYPES[k]+' ('+g[k].length+')',g[k].slice(0,40).map(m=>note(esc(m),'bad')).join('')+(g[k].length>40?'<p>…</p>':''))).join('')+(tt.unplaced&&tt.unplaced.length?card('حصص تعذر وضعها',tt.unplaced.map(u=>note(esc(u),'bad')).join('')):'')+h};
+PAGES.hours=()=>{const tt=S.timetable;if(!tt)return emptyTT();const v=validate(tt.lessons);return staleBanner()+card('تقرير التحقق من الحجم الساعي',tbl(['القسم','المادة','الأستاذ','الحجم المطلوب','الحجم المبرمج','الفرق'],v.rows.map(r=>'<tr><td>'+esc(nm(S.classes,r.c))+'</td><td>'+esc(nm(S.subjects,r.s))+'</td><td>'+esc(r.t)+'</td><td>'+r.req+'</td><td>'+r.got+'</td><td><span class="badge '+(r.diff===0?'ok':'bad')+'">'+r.diff+'</span></td></tr>')))};
+PAGES.export=()=>{const tt=S.timetable;if(!tt)return emptyTT();const sc=UI.exp.scope,ac=activeClasses();
+ return card('التصدير والطباعة','<div class="row">'+uiSel('exp.scope',sc,[['one','جدول قسم واحد'],['allc','جميع الأقسام'],['allt','جدول الأساتذة'],['allr','جدول القاعات']])+(sc==='one'?uiSel('exp.id',UI.exp.id||(ac[0]||{}).id,ac.map(c=>[c.id,c.name])):'')+'</div><div class="row">'+btn('xlsx','تصدير Excel','p')+btn('pdf','تصدير PDF','p')+btn('print|exp','طباعة مباشرة')+'</div>'+(DL?'':note('حفظ الملفات غير متاح في هذا العرض؛ الطباعة المباشرة تعمل دائمًا.','wn')))};
+
+/* ---------- export ---------- */
+async function saveFile(name,data){if(!DL){toast('حفظ الملفات غير متاح في هذا العرض');return}try{await DL.save({filename:name,data});toast('تم الحفظ')}catch(e){toast(e&&e.code==='declined'?'أُلغي الحفظ':'تعذر الحفظ')}}
+function fillPrint(scope,id){const list=scopeList(scope,id);$('#printArea').innerHTML=list.map(([k,i])=>sheetHTML(k,i)).join('');return list.length}
+function aoa(kind,id){const tt=S.timetable,I=makeIdx(tt.lessons),days=sortedDays(),per=P();const rows=[[(kind==='c'?'القسم: '+nm(S.classes,id):kind==='t'?'الأستاذ: '+nm(S.teachers,id):'القاعة: '+nm(S.rooms,id))],[],['الوقت'].concat(days.map(d=>DAYS[d]))];
+ usedPeriods().forEach(pi=>{const p=per[pi];rows.push([p.start+' - '+p.end].concat(days.map(d=>{if(!enabled(d,p.id))return'—';const l=I[kind][id+'|'+d+'|'+p.id];if(!l)return'';const s=nm(S.subjects,l.s),t=nm(S.teachers,l.t),r=nm(S.rooms,l.r),c=nm(S.classes,l.c);return(kind==='c'?[s,t,r]:kind==='t'?[c,s,r]:[c,s,t]).join('\n')})))});return rows}
+function xlsx(){if(typeof XLSX==='undefined'){toast('تعذر تحميل مكتبة Excel');return}
+ const list=scopeList(UI.exp.scope,UI.exp.id),wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};const used={};
+ list.forEach(([k,i])=>{let n=(k==='c'?nm(S.classes,i):k==='t'?nm(S.teachers,i):nm(S.rooms,i)).replace(/[\[\]:*?\/\\]/g,' ').slice(0,28)||'ورقة';let u=n,x=2;while(used[u])u=n+' '+(x++);used[u]=1;const ws=XLSX.utils.aoa_to_sheet(aoa(k,i));ws['!cols']=[{wch:14}].concat(sortedDays().map(()=>({wch:24})));XLSX.utils.book_append_sheet(wb,ws,u)});
+ if(UI.exp.scope==='allc'){const v=validate(S.timetable.lessons);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['القسم','المادة','الأستاذ','الحجم المطلوب','الحجم المبرمج','الفرق']].concat(v.rows.map(r=>[nm(S.classes,r.c),nm(S.subjects,r.s),r.t,r.req,r.got,r.diff]))),'الحجم الساعي')}
+ const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});saveFile('جداول-التوقيت.xlsx',new Blob([out]))}
+async function pdf(){if(!window.html2canvas||!window.jspdf){toast('تعذر تحميل مكتبة PDF');return}
+ if(!fillPrint(UI.exp.scope,UI.exp.id)){toast('لا توجد جداول');return}toast('جارٍ إنشاء PDF…');await tick();
+ const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),els=[...document.querySelectorAll('#printArea .psheet')];
+ for(let i=0;i<els.length;i++){const cv=await html2canvas(els[i],{scale:2,backgroundColor:'#fff'});const w=281,h=Math.min(194,cv.height*w/cv.width),ww=h<194?w:cv.width*194/cv.height;if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',8,8,ww,h)}
+ saveFile('جداول-التوقيت.pdf',doc.output('blob'))}
+function printNow(scope,id){if(!fillPrint(scope,id)){toast('لا توجد جداول');return}try{window.print()}catch(e){toast('تعذرت الطباعة في هذا العرض؛ جرّب تصدير PDF')}}
+
+/* ---------- actions ---------- */
+function ask(text,fn){UI.modal={text,fn};render()}
+const A={
+ nav(p){UI.page=p;UI.drawer=false;UI.sel=null;UI.hints=null;UI.msg=null;render();window.scrollTo(0,0)},
+ drawer(){UI.drawer=!UI.drawer;render()},
+ demo(){const go=()=>{loadDemo();UI.cand=[];UI.pst='';toast('تم تحميل البيانات التجريبية');render()};if(S.classes.length)ask('سيتم استبدال بياناتك الحالية بالبيانات التجريبية. متابعة؟',go);else go()},
+ reset(){ask('سيتم مسح كل البيانات نهائيًا. متابعة؟',()=>{S=blank();save();UI.cand=[];render()})},
+ setYear(id){S.activeYear=id;save()},
+ add(col){const f={years:()=>({id:uid('y'),name:'سنة جديدة'}),levels:()=>({id:uid('l'),name:'مستوى جديد',yearId:S.activeYear}),streams:()=>({id:uid('s'),levelId:(S.levels[0]||{}).id,name:'شعبة جديدة',maxDay:0,minDay:0}),classes:()=>({id:uid('c'),streamId:(S.streams[0]||{}).id,name:'قسم جديد',size:30,roomId:''}),subjects:()=>({id:uid('sb'),name:'مادة جديدة',type:'علمية'}),
+  programs:()=>{const used=S.programs.filter(p=>p.streamId===UI.pst).map(p=>p.subjectId),s=S.subjects.find(x=>!used.includes(x.id))||S.subjects[0];return{id:uid('p'),streamId:UI.pst,subjectId:s?s.id:'',hours:1,coef:1,core:false,heavy:false,roomType:'عادية',splittable:true,blockSize:1,minDay:0,maxDay:2}},
+  teachers:()=>({id:uid('t'),name:'أستاذ جديد',subjectId:'',classIds:[],unavail:[],pref:[],maxConsec:3}),rooms:()=>({id:uid('r'),name:'قاعة جديدة',type:'عادية',capacity:35,subjectIds:[]}),rules:()=>({id:uid('u'),hard:true,day:-1,period:'',subjectId:'',classId:'',teacherId:''})};
+  if(col==='programs'&&!UI.pst)return;S[col].push(f[col]());save();render()},
+ del(col,id){const go=()=>{
+   if(col==='periods'){S.inst.periods=S.inst.periods.filter(p=>p.id!==id)}
+   else{S[col]=S[col].filter(x=>x.id!==id);
+    if(col==='levels'){S.streams.filter(s=>s.levelId===id).forEach(s=>A.del('streams',s.id))}
+    if(col==='streams'){S.classes=S.classes.filter(c=>c.streamId!==id);S.programs=S.programs.filter(p=>p.streamId!==id)}
+    if(col==='classes')S.teachers.forEach(t=>t.classIds=t.classIds.filter(c=>c!==id));
+    if(col==='subjects'){S.programs=S.programs.filter(p=>p.subjectId!==id);S.teachers.forEach(t=>{if(t.subjectId===id)t.subjectId=''})}
+    if(col==='rooms')S.classes.forEach(c=>{if(c.roomId===id)c.roomId=''});
+    if(col==='years'&&S.activeYear===id)S.activeYear=S.years[0].id}
+   save();render()};
+  if(['rules','programs','periods'].includes(col))go();else ask('تأكيد الحذف؟ سيُحذف كل ما يرتبط به.',go)},
+ genclasses(){const st=by(S.streams,UI.gs||(S.streams[0]||{}).id);if(!st)return;const lv=by(S.levels,st.levelId),n=+UI.gn||2,have=S.classes.filter(c=>c.streamId===st.id).length;for(let i=1;i<=n;i++)S.classes.push({id:uid('c'),streamId:st.id,name:((lv?lv.name.split(' ')[0]:'')+' '+st.name+' '+(have+i)).trim(),size:30,roomId:''});save();render()},
+ autoroom(){const used=new Set(S.classes.map(c=>c.roomId).filter(Boolean));const free=S.rooms.filter(r=>r.type==='عادية'&&!used.has(r.id));S.classes.forEach(c=>{if(!c.roomId&&free.length)c.roomId=free.shift().id});save();render()},
+ copyprog(){if(!UI.cp||UI.cp===UI.pst)return;S.programs=S.programs.filter(p=>p.streamId!==UI.pst).concat(S.programs.filter(p=>p.streamId===UI.cp).map(p=>({...p,id:uid('p'),streamId:UI.pst})));save();render()},
+ autot(){const n=autoAssign(18);save();toast(n?'أُنشئ '+n+' أستاذ وأُسنِدت الحصص':'أُسنِدت الحصص إلى الأساتذة الحاليين');render()},
+ tcls(tid,cid){const t=by(S.teachers,tid);if(t.classIds.includes(cid))t.classIds=t.classIds.filter(x=>x!==cid);else{S.teachers.forEach(o=>{if(o!==t&&o.subjectId===t.subjectId)o.classIds=o.classIds.filter(x=>x!==cid)});t.classIds.push(cid)}save();render()},
+ togT(tid,d,pid){const t=by(S.teachers,tid),k=d+'-'+pid;t.unavail=t.unavail||[];t.pref=t.pref||[];if(t.unavail.includes(k)){t.unavail=t.unavail.filter(x=>x!==k);t.pref.push(k)}else if(t.pref.includes(k))t.pref=t.pref.filter(x=>x!==k);else t.unavail.push(k);save();render()},
+ rsub(rid,sid){const r=by(S.rooms,rid);r.subjectIds=r.subjectIds||[];r.subjectIds=r.subjectIds.includes(sid)?r.subjectIds.filter(x=>x!==sid):r.subjectIds.concat(sid);save();render()},
+ addrt(){const v=($('#newrt')||{}).value;if(v&&v.trim()&&!S.roomTypes.includes(v.trim())){S.roomTypes.push(v.trim());save();render()}},
+ delrt(t){S.roomTypes=S.roomTypes.filter(x=>x!==t);S.rooms.forEach(r=>{if(r.type===t)r.type='عادية'});S.programs.forEach(p=>{if(p.roomType===t)p.roomType='عادية'});save();render()},
+ togDay(i){const d=+i;S.inst.days=S.inst.days.includes(d)?S.inst.days.filter(x=>x!==d):S.inst.days.concat(d);if(!S.inst.dayPeriods[d])S.inst.dayPeriods[d]=P().map(p=>p.id);save();render()},
+ togSlot(d,pid){d=+d;const a=S.inst.dayPeriods[d]=S.inst.dayPeriods[d]||[];S.inst.dayPeriods[d]=a.includes(pid)?a.filter(x=>x!==pid):a.concat(pid);save();render()},
+ addp(){const l=P()[P().length-1],[h,m]=(l?l.end:'08:00').split(':').map(Number),e=((h*60+m+60)%1440),f=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'),id=uid('p'),ses=l?l.session:'m';
+  P().push({id,start:l?l.end:'08:00',end:f(e),session:ses,breakAfter:false});S.inst.days.forEach(d=>{if(P().some(p=>p.id!==id&&p.session===ses&&(S.inst.dayPeriods[d]||[]).includes(p.id)))S.inst.dayPeriods[d].push(id)});save();render()},
+ togCap(){S.capacity=!S.capacity;save()},
+ gen(){generate()},use(i){useCand(+i)},
+ tab(d){UI.tab=+d;render()},
+ finalize(){const s=ttStatus();if(s&&s.ok){S.timetable.final=true;save();toast('تم اعتماد التوقيت');render()}},
+ unfinal(){S.timetable.final=false;save();render()},
+ cell(d,pid){d=+d;const tt=S.timetable,l=tt.lessons.find(x=>x.c===UI.cls&&x.d===d&&x.p===pid);
+  if(!UI.sel){if(l)A.select(l.id);return}if(l&&l.id===UI.sel){UI.sel=null;UI.hints=null;render();return}A.move(UI.sel,d,pid)},
+ select(id){UI.sel=id;UI.msg=null;UI.hints={};const days=sortedDays();usedPeriods().forEach(pi=>{const pid=P()[pi].id;days.forEach(d=>{if(!enabled(d,pid))return;const r=tryMove(id,d,pid,false);UI.hints[d+'|'+pid]=r.ok?'ok':'no'})});render()},
+ move(id,d,pid){const r=tryMove(id,+d,pid,true);UI.sel=null;UI.hints=null;if(r.ok){const an=analyze(S.timetable.lessons);UI.msg={k:an.tue&&S.tue.on?'wn':'ok',t:an.tue&&S.tue.on?'تم النقل. ملاحظة: في الجدول '+an.tue+' حصة الثلاثاء مساءً.':'تم النقل بعد التحقق من الأستاذ والقسم والقاعة والحجم الساعي.'}}else if(!r.same)UI.msg={k:'bad',t:r.msg};render()},
+ print(a,b){if(a==='exp')printNow(UI.exp.scope,UI.exp.id);else{const kind=b,key=kind==='c'?'cls':kind==='t'?'tch':'room';const t=fillPrint('one',UI[key]);$('#printArea').innerHTML=sheetHTML(kind,UI[key]);try{window.print()}catch(e){toast('تعذرت الطباعة في هذا العرض')}}},
+ xlsx,pdf,
+ backup(){saveFile('نسخة-احتياطية-التوقيت.json',JSON.stringify(S))},
+ mYes(){const f=UI.modal&&UI.modal.fn;UI.modal=null;if(f)f();else render()},mNo(){UI.modal=null;render()}
+};
+
+/* ---------- render & events ---------- */
+function render(){const m=$('#main');if(!m)return;
+ $('#side').innerHTML='<h1>جداول التوقيت<small>'+esc(S.inst.name||'منصة الجدولة الآلية')+'</small></h1>'+NAV.map(([t,ps])=>'<h4>'+t+'</h4>'+ps.map(p=>'<a class="'+(UI.page===p?'on':'')+'" data-act="nav|'+p+'" tabindex="0">'+TITLES[p]+'</a>').join('')).join('');
+ $('#title').textContent=TITLES[UI.page];m.innerHTML=(PAGES[UI.page]||PAGES.dash)();
+ $('#side').classList.toggle('open',UI.drawer);$('#bd').classList.toggle('on',UI.drawer);
+ $('#modal').innerHTML=UI.modal?'<div class="mb"><div class="md"><p>'+esc(UI.modal.text)+'</p><div class="row">'+btn('mYes','تأكيد','p')+btn('mNo','إلغاء')+'</div></div></div>':'';
+ const s=S.timetable?ttStatus():null;$('#stat').innerHTML=s?'<span class="badge '+(s.ok?'ok':'bad')+'">'+(s.ok?'مكتمل':'غير مكتمل')+'</span>':'';
+}
+function later(el){if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='range')setTimeout(render,0);else setTimeout(()=>{const a=document.activeElement;if(!a||!/INPUT|SELECT|TEXTAREA/.test(a.tagName))render()},250)}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(!a)return;if(a.tagName==='INPUT'&&a.type==='radio'){const[n,...r]=a.dataset.act.split('|');A[n]&&A[n](...r);return}if(a.tagName==='INPUT'&&a.type==='checkbox'){return}
+ if(a.tagName==='LABEL')return;const[n,...r]=a.dataset.act.split('|');if(A[n]){e.preventDefault();A[n](...r)}});
+document.addEventListener('change',e=>{const el=e.target;
+ if(el.matches('input[type=checkbox][data-act]')){const[n,...r]=el.dataset.act.split('|');A[n]&&A[n](...r);return}
+ if(el.id==='fImp'){const f=el.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{S=Object.assign(blank(),JSON.parse(rd.result));save();UI.cand=[];render();toast('تم الاستيراد')}catch(x){toast('ملف غير صالح')}};rd.readAsText(f);return}
+ if(el.dataset.ui){const k=el.dataset.ui;let v=el.value;if(k.indexOf('.')>0){const[a,b]=k.split('.');UI[a][b]=a==='opt'?Number(v):v}else UI[k]=v;if(k==='cls')UI.sel=null,UI.hints=null,UI.msg=null;render();return}
+ if(el.dataset.col!==undefined&&el.dataset.f){const col=el.dataset.col,f=el.dataset.f,id=el.dataset.id;let tgt=col==='inst'?S.inst:(col==='prefs'||col==='tue')?S[col]:getCol(col).find(x=>x.id===id);if(!tgt)return;let v=el.value;const t=el.dataset.t;if(t==='number')v=Number(v)||0;else if(t==='bool'){v=el.type==='checkbox'?el.checked:v==='true'}tgt[f]=v;if(col==='periods')S.inst.periods.sort((a,b)=>a.start.localeCompare(b.start));save();if(el.dataset.rr!==undefined||col==='prefs'||col==='tue')later(el)}});
+document.addEventListener('dragstart',e=>{const d=e.target.closest&&e.target.closest('[data-lid]');if(d){UI.sel=d.dataset.lid;e.dataTransfer.setData('text/plain',d.dataset.lid);e.dataTransfer.effectAllowed='move'}});
+document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('td.slot[data-act]'))e.preventDefault()});
+document.addEventListener('drop',e=>{const c=e.target.closest&&e.target.closest('td.slot[data-d]');if(!c||!UI.sel||UI.page!=='class')return;e.preventDefault();A.move(UI.sel,c.dataset.d,c.dataset.p)});
+(async()=>{try{DL=await (window.claude&&window.claude.use?window.claude.use('downloads'):null)}catch(e){DL=null}if(UI.page==='export'||UI.page==='dash')render()})();
+S=load();render();
+</script>
+</body>
+</html>
